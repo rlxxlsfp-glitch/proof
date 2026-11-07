@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7452F7">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Proof">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Proof — 명제부터 무리함수까지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script>
+window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, startup: { typeset: false } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js" async></script>
+<style>
+:root{
+  --bg:#FFFFFF; --surface:#FFFFFF; --soft:#F5F4FA; --tile:#ECE8FE; --ink:#17181C; --ink2:#5E606B; --ink3:#9A9CA8;
+  --line:#ECECF2; --mint:#7452F7; --mintSoft:#EEEBFE; --teal:#6447F0; --grad1:#6655FF; --grad2:#A06DFF;
+  --ok:#17A673; --okSoft:#E6F6EF; --bad:#E5484D; --badSoft:#FDECEC; --gold:#C98A12; --goldSoft:#FBF3E2;
+  --shadow:0 10px 24px -10px rgba(116,82,247,.55);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121218; --surface:#121218; --soft:#1C1B25; --tile:#2A2542; --ink:#ECECF3; --ink2:#B4B5C2; --ink3:#7C7E8C;
+    --line:#26252F; --mint:#8F74FF; --mintSoft:#2A2542; --teal:#A792FF; --grad1:#7563FF; --grad2:#A67CFF;
+    --ok:#3CCB8F; --okSoft:#15302A; --bad:#FF6B70; --badSoft:#3A1C1F; --gold:#F0B94B; --goldSoft:#3A2F17;
+    --shadow:0 10px 24px -12px rgba(143,116,255,.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121218; --surface:#121218; --soft:#1C1B25; --tile:#2A2542; --ink:#ECECF3; --ink2:#B4B5C2; --ink3:#7C7E8C;
+  --line:#26252F; --mint:#8F74FF; --mintSoft:#2A2542; --teal:#A792FF; --grad1:#7563FF; --grad2:#A67CFF;
+  --ok:#3CCB8F; --okSoft:#15302A; --bad:#FF6B70; --badSoft:#3A1C1F; --gold:#F0B94B; --goldSoft:#3A2F17;
+  --shadow:0 10px 24px -12px rgba(143,116,255,.6);
+  color-scheme: dark;
+}
+html{ font-size:16px; scroll-padding-top:env(safe-area-inset-top,0px); }
+html[data-fs="l"]{ font-size:17.5px; } html[data-fs="xl"]{ font-size:19px; }
+:root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+*,*::before,*::after{ box-sizing:inherit; }
+body{ margin:0; background:var(--bg); color:var(--ink); font-family:"Noto Sans KR", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; font-size:1rem; line-height:1.6; letter-spacing:-.01em; -webkit-font-smoothing:antialiased; }
+body::before{ content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:10; background:var(--surface); }
+button{ font:inherit; color:inherit; }
+:focus-visible{ outline:3px solid var(--mint); outline-offset:2px; }
+.wrap{ max-width:760px; margin:0 auto; padding:0 20px 130px; }
+
+header.top{ position:sticky; top:env(safe-area-inset-top,0px); z-index:5; background:var(--surface); border-bottom:1px solid var(--line); }
+header.top .in{ max-width:760px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; gap:10px; min-height:62px; }
+header.top .back{ border:1px solid var(--line); background:var(--surface); color:var(--ink); width:40px; height:40px; border-radius:50%; font-size:1.2rem; cursor:pointer; flex:none; }
+header.top h1{ font-size:1.25rem; margin:0; font-weight:800; color:var(--mint); letter-spacing:-.02em; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+header.top h1.plain{ color:var(--ink); font-weight:700; font-size:1.05rem; }
+header.top .bell{ color:var(--ink2); width:24px; height:24px; flex:none; }
+header.top .dday{ display:flex; align-items:center; gap:6px; font-size:.9rem; font-weight:700; color:var(--teal); background:var(--mintSoft); padding:7px 14px; border-radius:22px; flex:none; }
+header.top .dday svg{ width:17px; height:17px; }
+
+nav.tabs{ position:fixed; left:0; right:0; bottom:0; z-index:6; background:var(--surface); border-top:1px solid var(--line); padding-bottom:env(safe-area-inset-bottom,0px); }
+nav.tabs .in{ max-width:760px; margin:0 auto; display:grid; grid-template-columns:repeat(5,1fr); }
+nav.tabs button{ border:0; background:none; padding:10px 2px 12px; font-size:.75rem; color:var(--ink2); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; }
+nav.tabs button svg{ width:24px; height:24px; }
+nav.tabs button.on{ color:var(--mint); font-weight:700; }
+
+.phead{ margin:28px 0 18px; }
+.phead h2{ font-size:1.65rem; font-weight:800; margin:0; letter-spacing:-.03em; line-height:1.3; }
+.phead p{ margin:4px 0 0; color:var(--ink3); font-size:.95rem; }
+h2.sec, h3.sh{ font-size:1rem; color:var(--ink); font-weight:700; margin:30px 2px 12px; }
+.panel{ background:var(--surface); border:1px solid var(--line); border-radius:24px; padding:22px; margin:14px 0; }
+
+.hero{ display:block; width:100%; text-align:left; border:0; cursor:pointer; margin:0 0 8px; padding:24px 26px; border-radius:28px; background:var(--mint); color:#fff; }
+.hero .hl{ font-size:.92rem; opacity:.85; display:block; }
+.hero .hn{ font-size:3rem; font-weight:800; line-height:1.15; display:block; letter-spacing:-.03em; margin:4px 0; }
+.hero .hs{ font-size:.95rem; opacity:.85; }
+.rows .row{ display:flex; justify-content:space-between; padding:8px 2px; color:var(--ink2); }
+.rows .row b{ color:var(--ink); }
+
+.todo{ background:var(--soft); border-radius:24px; padding:20px 22px; margin:16px 0; }
+.todo b{ display:block; margin-bottom:4px; font-size:1rem; }
+.todo p{ color:var(--ink2); }
+.todo .act{ margin-top:14px; }
+
+.unitlist, .cards{ display:grid; gap:12px; }
+.card, .unit{ display:grid; grid-template-columns:56px 1fr auto; gap:16px; align-items:center; background:var(--soft); border:0; border-radius:24px; padding:18px 20px; cursor:pointer; text-align:left; width:100%; }
+.tile, .unit .no{ width:56px; height:56px; border-radius:16px; background:var(--tile); color:var(--teal); display:grid; place-items:center; font-weight:800; font-size:1.05rem; }
+.tile svg{ width:26px; height:26px; }
+.card b, .unit .t{ font-weight:700; font-size:1.08rem; display:block; }
+.card small, .unit .s{ font-size:.88rem; color:var(--ink2); display:block; }
+.unit .bar{ height:5px; background:var(--line); border-radius:4px; margin-top:8px; overflow:hidden; display:block; }
+.unit .bar i{ display:block; height:100%; background:var(--mint); border-radius:4px; }
+.unit .pct, .chev{ font-size:.95rem; color:var(--ink3); font-weight:600; }
+
+.menu h4{ font-size:.85rem; color:var(--ink2); font-weight:600; margin:26px 4px 6px; }
+.menu button.mi{ display:flex; align-items:center; gap:16px; width:100%; border:0; background:none; padding:14px 6px; font-size:1.08rem; cursor:pointer; text-align:left; border-radius:12px; }
+.menu button.mi svg{ width:26px; height:26px; color:var(--ink2); }
+.menu button.mi:hover{ background:var(--soft); }
+
+.seg{ display:flex; gap:4px; background:var(--soft); padding:5px; border-radius:18px; margin:18px 0 8px; }
+.seg button{ flex:1; border:0; background:none; padding:11px 4px; border-radius:14px; cursor:pointer; font-size:.95rem; color:var(--ink2); font-weight:500; }
+.seg button.on{ background:var(--tile); color:var(--teal); font-weight:700; }
+
+.concept{ background:var(--surface); border:1px solid var(--line); border-radius:24px; margin:12px 0; overflow:hidden; }
+.concept > button{ width:100%; text-align:left; border:0; background:none; padding:18px 20px; cursor:pointer; display:flex; align-items:center; gap:12px; font-weight:700; font-size:1.02rem; }
+.concept > button .k{ font-size:.78rem; font-weight:700; color:var(--teal); background:var(--mintSoft); border-radius:20px; padding:3px 10px; flex:none; }
+.concept > button .chev{ margin-left:auto; color:var(--ink3); transition:transform .2s; }
+.concept.open > button .chev{ transform:rotate(90deg); }
+.concept .body{ display:none; padding:0 20px 20px; }
+.concept.open .body{ display:block; }
+.concept.flash{ box-shadow:0 0 0 3px var(--mint); }
+.body p{ margin:8px 0; } .body ul{ margin:6px 0; padding-left:20px; } .body li{ margin:4px 0; }
+.key, .warn, .tip{ border-radius:16px; padding:12px 16px; margin:12px 0; }
+.key{ background:var(--mintSoft); } .warn{ background:var(--badSoft); } .tip{ background:var(--goldSoft); }
+.key b, .warn b, .tip b{ display:block; font-size:.82rem; margin-bottom:2px; }
+.key b{ color:var(--teal); } .warn b{ color:var(--bad); } .tip b{ color:var(--gold); }
+figure{ margin:14px 0; text-align:center; }
+figure svg{ max-width:100%; height:auto; }
+figcaption{ font-size:.82rem; color:var(--ink3); margin-top:4px; }
+.fig .ax{ stroke:var(--ink3); stroke-width:1.2; fill:none; }
+.fig .c1{ stroke:var(--mint); stroke-width:2.5; fill:none; }
+.fig .c2{ stroke:var(--bad); stroke-width:2.5; fill:none; }
+.fig .c3{ stroke:var(--gold); stroke-width:2.2; fill:none; }
+.fig .ds{ stroke:var(--ink3); stroke-width:1.2; stroke-dasharray:5 4; fill:none; }
+.fig .fill1{ fill:var(--mint); opacity:.16; } .fig .fill2{ fill:var(--bad); opacity:.2; } .fig .fill3{ fill:var(--gold); opacity:.22; }
+.fig text{ fill:var(--ink2); font-size:13px; font-family:inherit; }
+.fig .tb{ fill:var(--ink); font-weight:700; }
+.fig .dot{ fill:var(--ink); }
+.fig .hole{ fill:var(--surface); stroke:var(--ink); stroke-width:1.5; }
+.fig .box{ fill:var(--soft); stroke:var(--line); stroke-width:1.5; }
+
+.q-meta{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:16px 0 4px; font-size:.8rem; }
+.chip{ padding:5px 12px; border-radius:20px; background:var(--mintSoft); color:var(--teal); font-weight:700; }
+.chip.g{ background:var(--soft); color:var(--ink2); }
+.chip.r{ background:var(--badSoft); color:var(--bad); }
+.src{ font-size:.8rem; color:var(--ink3); margin:4px 2px 0; }
+.qtext{ font-size:1.05rem; margin:12px 0 16px; }
+.choices{ display:grid; gap:10px; }
+.choice{ display:flex; gap:12px; align-items:center; text-align:left; width:100%; border:1.5px solid transparent; background:var(--soft); border-radius:18px; padding:14px 16px; cursor:pointer; min-height:54px; }
+.choice .n{ flex:none; width:28px; height:28px; border-radius:50%; background:var(--surface); display:grid; place-items:center; font-size:.82rem; font-weight:700; color:var(--ink2); }
+.choice:hover{ border-color:var(--mint); }
+.choice.right{ border-color:var(--ok); background:var(--okSoft); } .choice.right .n{ background:var(--ok); color:#fff; }
+.choice.wrong{ border-color:var(--bad); background:var(--badSoft); } .choice.wrong .n{ background:var(--bad); color:#fff; }
+.choice[disabled]{ cursor:default; }
+.inputrow{ display:flex; gap:8px; }
+.inputrow input{ flex:1; font:inherit; font-size:1.1rem; padding:14px 18px; border-radius:16px; border:1.5px solid var(--line); background:var(--surface); color:var(--ink); min-width:0; }
+.btn{ border:0; border-radius:30px; padding:14px 24px; font-weight:700; cursor:pointer; color:#fff; font-size:.98rem; background:linear-gradient(90deg,var(--grad1),var(--grad2)); box-shadow:var(--shadow); }
+.btn.ghost{ background:var(--mintSoft); color:var(--teal); box-shadow:none; }
+.btn.line{ background:var(--surface); border:1.5px solid var(--line); color:var(--ink); box-shadow:none; }
+.btn.warnb{ }
+.btn:disabled{ opacity:.45; cursor:default; }
+.btnrow{ display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+.fab{ position:fixed; right:max(20px, calc(50% - 360px)); bottom:calc(88px + env(safe-area-inset-bottom,0px)); z-index:7; border:0; border-radius:30px; padding:15px 24px; font-weight:700; font-size:1rem; color:#fff; background:linear-gradient(90deg,var(--grad1),var(--grad2)); box-shadow:var(--shadow); cursor:pointer; display:flex; align-items:center; gap:6px; }
+
+.timer{ display:flex; align-items:center; gap:14px; background:var(--soft); border-radius:20px; padding:12px 16px; margin-top:16px; }
+.timer svg{ width:46px; height:46px; flex:none; transform:rotate(-90deg); }
+.timer .trk{ stroke:var(--line); }
+.timer .arc{ stroke:var(--mint); transition:stroke-dashoffset .9s linear, stroke .3s; }
+.timer.over .arc{ stroke:var(--bad); }
+.timer .tt{ font-size:1.4rem; font-weight:800; font-variant-numeric:tabular-nums; }
+.timer .tg{ font-size:.8rem; color:var(--ink3); }
+.timer.over .tt{ color:var(--bad); }
+.timer .pz{ margin-left:auto; padding:10px 18px; }
+
+.result{ border-radius:20px; padding:16px 18px; margin:18px 0 6px; font-weight:700; }
+.result.ok{ background:var(--okSoft); color:var(--ok); } .result.no{ background:var(--badSoft); color:var(--bad); }
+.result small{ display:block; font-weight:400; color:var(--ink2); margin-top:2px; }
+.sol{ background:var(--surface); border:1px solid var(--line); border-radius:24px; padding:18px 20px; margin:12px 0; }
+.sol h4{ margin:0 0 8px; font-size:.9rem; color:var(--teal); }
+.sol .step{ margin:10px 0; padding-left:14px; border-left:3px solid var(--tile); }
+.why{ margin:16px 0; } .why p{ margin:0 0 8px; font-size:.88rem; color:var(--ink2); }
+.why .opts{ display:flex; flex-wrap:wrap; gap:8px; }
+.why .opts button{ border:0; background:var(--soft); border-radius:20px; padding:8px 14px; font-size:.88rem; cursor:pointer; color:var(--ink2); }
+.why .opts button.on{ background:var(--badSoft); color:var(--bad); font-weight:700; }
+.alert{ border-radius:20px; padding:16px 18px; margin:14px 0; background:var(--mintSoft); }
+.alert b{ display:block; margin-bottom:4px; color:var(--teal); }
+.progress{ height:6px; border-radius:4px; background:var(--soft); overflow:hidden; margin:14px 0 0; }
+.progress i{ display:block; height:100%; background:var(--mint); transition:width .3s; }
+.plist{ display:grid; gap:10px; }
+.pitem{ display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:center; background:var(--soft); border:0; border-radius:20px; padding:14px 18px; cursor:pointer; width:100%; text-align:left; }
+.pitem .id{ font-weight:800; font-variant-numeric:tabular-nums; color:var(--teal); }
+.pitem .m{ font-size:.82rem; color:var(--ink3); }
+.st{ font-size:.75rem; font-weight:700; padding:3px 10px; border-radius:12px; }
+.st.ok{ background:var(--okSoft); color:var(--ok); } .st.no{ background:var(--badSoft); color:var(--bad); } .st.new{ background:var(--surface); color:var(--ink3); }
+.stat{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:14px 0; }
+.stat div{ background:var(--soft); border-radius:20px; padding:14px 16px; }
+.stat b{ display:block; font-size:1.4rem; font-weight:800; font-variant-numeric:tabular-nums; }
+.stat span{ font-size:.8rem; color:var(--ink3); }
+.rrow{ padding:14px 0; border-bottom:1px solid var(--line); }
+.rrow:last-child{ border-bottom:0; }
+.rrow .h{ display:flex; justify-content:space-between; gap:8px; font-weight:700; }
+.rrow .bars{ height:8px; border-radius:4px; background:var(--soft); overflow:hidden; margin:8px 0; }
+.rrow .bars i{ display:block; height:100%; border-radius:4px; }
+.rrow .adv{ font-size:.9rem; color:var(--ink2); }
+.empty{ text-align:center; color:var(--ink3); padding:60px 10px; }
+.empty b{ display:block; color:var(--ink); font-size:1.15rem; margin-bottom:6px; }
+.small{ font-size:.82rem; color:var(--ink3); }
+.formula{ display:grid; gap:10px; }
+.formula .f{ background:var(--soft); border-radius:20px; padding:14px 18px; }
+.formula .f b{ font-size:.82rem; color:var(--teal); display:block; }
+
+/* ---- 여백·들여쓰기 다듬기 ---- */
+body{ line-height:1.7; }
+.wrap{ padding:0 24px 140px; }
+header.top .in{ padding:14px 24px; min-height:68px; }
+header.top h1{ font-size:1.45rem; letter-spacing:-.04em; }
+header.top h1.plain{ font-size:1.08rem; letter-spacing:-.02em; }
+.phead{ margin:40px 4px 26px; }
+.phead h2{ font-size:1.8rem; }
+.phead p{ margin-top:6px; }
+h2.sec, h3.sh{ margin:44px 4px 14px; font-size:1.05rem; }
+.hero{ padding:28px 30px; }
+.hero .hn{ font-size:3.2rem; margin:6px 0 4px; }
+.rows{ padding:0 6px; }
+.rows .row{ padding:10px 0; border-bottom:1px solid var(--line); }
+.rows .row:last-child{ border-bottom:0; }
+.todo{ padding:24px 26px; margin:22px 0; }
+.todo p{ line-height:1.7; }
+.unitlist{ gap:14px; }
+.card, .unit{ padding:20px 24px; gap:18px; }
+.unit .s{ margin-top:2px; }
+.unit .bar{ margin-top:10px; }
+.panel{ padding:26px 28px; }
+.seg{ margin:20px 0 10px; }
+.concept > button{ padding:20px 24px; }
+.concept .body{ padding:2px 24px 26px 24px; }
+.body > p{ padding-left:4px; }
+.body ul{ padding-left:26px; }
+.body li{ margin:6px 0; padding-left:2px; }
+.key, .warn, .tip{ padding:16px 20px; margin:16px 0; }
+.key b, .warn b, .tip b{ margin-bottom:6px; }
+.q-meta{ margin:22px 2px 6px; }
+.src{ margin:6px 4px 0; }
+.qtext{ margin:16px 4px 20px; line-height:1.8; }
+.qtext .key{ margin:14px 0 0; padding:14px 20px 14px 22px; }
+.choices{ gap:12px; }
+.choice{ padding:16px 20px; gap:14px; }
+.timer{ padding:14px 20px; }
+.result{ padding:18px 22px; margin:22px 0 8px; }
+.sol{ padding:24px 26px; margin:16px 0; }
+.sol h4{ margin:0 0 14px; font-size:.95rem; }
+.sol .step{ margin:14px 0 14px 4px; padding:2px 0 2px 18px; line-height:1.8; }
+.sol .key, .sol .tip, .sol .warn{ margin:18px 0 4px; }
+.why{ margin:22px 4px; }
+.alert{ padding:18px 22px; }
+.plist{ gap:12px; }
+.pitem{ padding:16px 22px; gap:16px; }
+.stat{ gap:12px; margin:18px 0; }
+.stat div{ padding:16px 18px; }
+.rrow{ padding:18px 4px; }
+.formula{ gap:12px; }
+.formula .f{ padding:20px 24px; }
+.formula .f b{ margin-bottom:10px; }
+.formula .f .fx{ padding-left:14px; border-left:3px solid var(--tile); line-height:1.9; }
+.menu{ margin-top:-6px; }
+.menu h4{ margin:30px 6px 6px; }
+.menu button.mi{ padding:15px 10px; }
+.brandline{ display:flex; align-items:center; gap:10px; margin:36px 4px 0; color:var(--ink3); font-size:.85rem; }
+.brandline b{ color:var(--mint); font-weight:800; font-size:1rem; letter-spacing:-.03em; }
+
+
+/* ---- 반짝임·전환 ---- */
+.logo{ background:linear-gradient(100deg,var(--grad1) 0%,var(--grad2) 35%,#C9B6FF 50%,var(--grad2) 65%,var(--grad1) 100%); background-size:250% 100%; -webkit-background-clip:text; background-clip:text; color:transparent !important; animation:sheen 4.5s linear infinite; font-weight:900 !important; letter-spacing:-.04em; }
+@keyframes sheen{ from{ background-position:100% 0; } to{ background-position:-150% 0; } }
+.btn, .fab{ overflow:hidden; transition:transform .15s ease, box-shadow .2s ease; }
+.btn{ position:relative; }
+.fab{ position:fixed; }
+.btn:not(.ghost):not(.line)::after, .fab::after, .hero::after{ content:""; position:absolute; top:0; left:-60%; width:40%; height:100%; background:linear-gradient(100deg,transparent,rgba(255,255,255,.38),transparent); transform:skewX(-20deg); animation:shine 3.6s ease-in-out infinite; pointer-events:none; }
+@keyframes shine{ 0%,60%{ left:-60%; } 100%{ left:140%; } }
+.hero{ position:relative; overflow:hidden; background:linear-gradient(135deg,#6B4BF5 0%,#7F5BFF 55%,#9A72FF 100%); box-shadow:0 18px 40px -18px rgba(116,82,247,.7); transition:transform .18s ease; }
+.hero::before{ content:""; position:absolute; right:-40px; top:-60px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,.28),transparent 70%); pointer-events:none; }
+.btn:active, .fab:active, .hero:active, .unit:active, .choice:active, .pitem:active, .mi:active{ transform:scale(.97); }
+.unit, .card, .choice, .pitem{ transition:transform .15s ease, background .2s ease, border-color .2s ease; }
+.unit:hover, .pitem:hover{ background:var(--tile); }
+nav.tabs button{ position:relative; transition:color .2s; }
+nav.tabs button svg{ transition:transform .25s cubic-bezier(.3,1.6,.5,1); }
+nav.tabs button.on svg{ transform:translateY(-2px) scale(1.08); }
+nav.tabs button::before{ content:""; position:absolute; top:0; left:50%; width:0; height:3px; border-radius:0 0 3px 3px; background:linear-gradient(90deg,var(--grad1),var(--grad2)); transform:translateX(-50%); transition:width .3s cubic-bezier(.3,1.4,.5,1); }
+nav.tabs button.on::before{ width:28px; }
+.enter-up{ animation:enterUp .32s cubic-bezier(.2,.8,.2,1); }
+.enter-l{ animation:enterL .3s cubic-bezier(.2,.8,.2,1); }
+.enter-r{ animation:enterR .3s cubic-bezier(.2,.8,.2,1); }
+@keyframes enterUp{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
+@keyframes enterL{ from{ opacity:0; transform:translateX(28px); } to{ opacity:1; transform:none; } }
+@keyframes enterR{ from{ opacity:0; transform:translateX(-28px); } to{ opacity:1; transform:none; } }
+.stagger > *{ animation:enterUp .4s cubic-bezier(.2,.8,.2,1) both; }
+.stagger > *:nth-child(2){ animation-delay:.04s } .stagger > *:nth-child(3){ animation-delay:.08s } .stagger > *:nth-child(4){ animation-delay:.12s } .stagger > *:nth-child(5){ animation-delay:.16s } .stagger > *:nth-child(6){ animation-delay:.2s }
+.result{ animation:pop .35s cubic-bezier(.3,1.6,.5,1); }
+@keyframes pop{ from{ transform:scale(.92); opacity:0; } to{ transform:none; opacity:1; } }
+.concept .body{ animation:enterUp .25s ease; }
+.fab{ animation:fabIn .45s cubic-bezier(.3,1.5,.5,1) both; }
+@keyframes fabIn{ from{ transform:translateY(30px) scale(.8); opacity:0; } to{ transform:none; opacity:1; } }
+.spark{ position:fixed; width:8px; height:8px; border-radius:50%; pointer-events:none; z-index:50; animation:spark .8s ease-out forwards; }
+@keyframes spark{ to{ transform:translate(var(--dx),var(--dy)) scale(.2); opacity:0; } }
+
+#splash{ position:fixed; inset:0; z-index:100; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; transition:opacity .45s ease, visibility .45s; }
+#splash.hide{ opacity:0; visibility:hidden; }
+#splash .glow{ position:relative; display:grid; place-items:center; }
+#splash .glow::before{ content:""; position:absolute; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle,rgba(140,110,255,.35),transparent 68%); animation:breathe 1.6s ease-in-out infinite; }
+@keyframes breathe{ 0%,100%{ transform:scale(.85); opacity:.7; } 50%{ transform:scale(1.1); opacity:1; } }
+#splash .logo{ position:relative; font-size:3.2rem; }
+#splash .lbar{ width:160px; height:4px; border-radius:4px; background:var(--soft); overflow:hidden; }
+#splash .lbar i{ display:block; height:100%; width:0; border-radius:4px; background:linear-gradient(90deg,var(--grad1),var(--grad2)); animation:load 1.05s cubic-bezier(.5,0,.2,1) forwards; }
+@keyframes load{ to{ width:100%; } }
+#splash p{ margin:0; color:var(--ink3); font-size:.9rem; }
+
+.onb{ min-height:calc(100vh - 360px); min-height:calc(100dvh - 360px); display:flex; flex-direction:column; }
+.onb .oc{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px 10px; }
+.onb .oi{ width:110px; height:110px; border-radius:50%; background:var(--tile); color:var(--teal); display:grid; place-items:center; margin-bottom:22px; animation:pop .45s cubic-bezier(.3,1.6,.5,1); }
+.onb .oi svg{ width:44px; height:44px; }
+.onb .step{ color:var(--mint); font-weight:700; font-size:.95rem; }
+.onb h3{ font-size:1.5rem; margin:6px 0 10px; letter-spacing:-.03em; }
+.onb .oc p{ color:var(--ink2); margin:0; max-width:420px; }
+.dots{ display:flex; gap:6px; justify-content:center; margin:18px 0; }
+.dots i{ width:7px; height:7px; border-radius:4px; background:var(--line); transition:width .3s, background .3s; }
+.dots i.on{ width:22px; background:var(--mint); }
+.onb .obtn{ display:grid; grid-template-columns:1fr 2fr; gap:10px; }
+@media (prefers-reduced-motion: reduce){ *, *::before, *::after{ animation:none !important; } }
+
+/* ---- 넘침 방지 ---- */
+html, body{ overflow-x:hidden; }
+.wrap, .wrap *{ min-width:0; }
+.body, .sol, .key, .warn, .tip, .qtext, .choice > span:last-child, .formula .fx, .concept > button, .todo, .alert, .rrow .adv{ overflow-wrap:anywhere; word-break:keep-all; }
+.key, .warn, .tip, .sol, .formula .f, .qtext, .choice{ overflow-x:auto; }
+.unit > span, .pitem > span, .card > span{ min-width:0; }
+
+.recall{ background:var(--soft); border-radius:18px; padding:16px 20px; margin:6px 0 18px; color:var(--ink2); line-height:1.75; }
+.recall b:first-child{ display:block; color:var(--teal); font-size:.85rem; margin-bottom:6px; }
+.key b:not(:first-child), .warn b:not(:first-child), .tip b:not(:first-child), .recall b:not(:first-child){ display:inline; font-size:inherit; margin:0; color:var(--ink); }
+.sum{ display:flex; gap:10px; align-items:baseline; background:linear-gradient(90deg,var(--mintSoft),transparent); border-radius:14px; padding:12px 16px; margin:20px 0 0; font-weight:600; }
+.sum b{ flex:none; font-size:.78rem; color:#fff; background:var(--mint); border-radius:20px; padding:2px 10px; }
+.body > p > b:only-child{ color:var(--ink); }
+
+mjx-container{ max-width:100%; overflow-x:auto; overflow-y:hidden; }
+mjx-container:not([display]){ display:inline-block; vertical-align:middle; }
+mjx-container[display="true"]{ display:block; text-align:left !important; padding:2px 0; }
+mjx-container svg{ max-width:none; }
+mjx-container[display="true"]{ margin:8px 0 !important; }
+@media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <button class="back" id="backBtn" aria-label="뒤로" hidden>‹</button>
+  <h1 id="title" class="logo">Proof</h1>
+  <svg class="bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+  <span class="dday"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span id="dday"></span></span>
+</div></header>
+<div id="splash"><div class="glow"><span class="logo">Proof</span></div><div class="lbar"><i></i></div><p>불러오는 중...</p></div>
+<main class="wrap" id="app"></main>
+<nav class="tabs"><div class="in">
+  <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9H4z"/></svg>홈</button>
+  <button data-tab="units"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>단원</button>
+  <button data-tab="coach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 10h6M9 14h4"/></svg>코치</button>
+  <button data-tab="review"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg>복습</button>
+  <button data-tab="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>더보기</button>
+</div></nav>
+
+<script>
+const R = String.raw;
+
+/* ---------- 그림 ---------- */
+const FIG = {
+vennSub: `<figure><svg class="fig" viewBox="0 0 300 180" width="300"><rect x="8" y="8" width="284" height="164" rx="10" class="ax"/><text x="18" y="28">U</text>
+<ellipse cx="160" cy="95" rx="115" ry="66" class="fill1"/><ellipse cx="160" cy="95" rx="115" ry="66" class="c1"/>
+<circle cx="135" cy="98" r="38" class="fill3"/><circle cx="135" cy="98" r="38" class="c3"/>
+<text x="126" y="103" class="tb">P</text><text x="238" y="100" class="tb">Q</text></svg>
+<figcaption>P ⊂ Q 이면 p → q 는 참. P가 충분조건, Q가 필요조건.</figcaption></figure>`,
+
+vennCex: `<figure><svg class="fig" viewBox="0 0 300 170" width="300"><defs><mask id="mQ"><rect width="300" height="170" fill="white"/><circle cx="180" cy="85" r="58" fill="black"/></mask></defs>
+<rect x="8" y="8" width="284" height="154" rx="10" class="ax"/>
+<circle cx="120" cy="85" r="58" class="fill2" mask="url(#mQ)"/>
+<circle cx="120" cy="85" r="58" class="c2"/><circle cx="180" cy="85" r="58" class="c1"/>
+<text x="78" y="80" class="tb">P−Q</text><text x="78" y="98">반례</text><text x="200" y="90" class="tb">Q</text></svg>
+<figcaption>P−Q에 원소가 하나라도 있으면 p → q 는 거짓, 그 원소가 반례.</figcaption></figure>`,
+
+contra: `<figure><svg class="fig" viewBox="0 0 300 200" width="300">
+<rect x="14" y="18" width="110" height="40" rx="8" class="box"/><text x="69" y="43" text-anchor="middle" class="tb">p → q</text>
+<rect x="176" y="18" width="110" height="40" rx="8" class="box"/><text x="231" y="43" text-anchor="middle" class="tb">q → p</text>
+<rect x="14" y="142" width="110" height="40" rx="8" class="box"/><text x="69" y="167" text-anchor="middle" class="tb">~p → ~q</text>
+<rect x="176" y="142" width="110" height="40" rx="8" class="box"/><text x="231" y="167" text-anchor="middle" class="tb">~q → ~p</text>
+<line x1="124" y1="38" x2="176" y2="38" class="ds"/><text x="150" y="30" text-anchor="middle">역</text>
+<line x1="69" y1="58" x2="69" y2="142" class="ds"/><text x="58" y="104" text-anchor="end">이</text>
+<line x1="124" y1="58" x2="176" y2="142" class="c1"/><text x="160" y="96">대우</text></svg>
+<figcaption>대각선(대우)끼리만 참·거짓이 항상 같다.</figcaption></figure>`,
+
+amgm: `<figure><svg class="fig" viewBox="0 0 300 175" width="300">
+<path d="M40 150 A110 110 0 0 1 260 150" class="c1"/><line x1="40" y1="150" x2="260" y2="150" class="ax"/>
+<line x1="150" y1="150" x2="150" y2="40" class="c3"/><line x1="190" y1="150" x2="190" y2="47.5" class="c2"/>
+<circle cx="150" cy="150" r="3" class="dot"/>
+<text x="95" y="168" text-anchor="middle">a</text><text x="225" y="168" text-anchor="middle">b</text>
+<text x="146" y="100" text-anchor="end">(a+b)/2</text><text x="196" y="105">√ab</text></svg>
+<figcaption>반지름 (a+b)/2 는 높이 √ab 보다 항상 길거나 같다. a=b일 때 둘이 겹친다.</figcaption></figure>`,
+
+hline: `<figure><svg class="fig" viewBox="0 0 300 140" width="300">
+<line x1="10" y1="110" x2="140" y2="110" class="ax"/><line x1="40" y1="10" x2="40" y2="130" class="ax"/>
+<path d="M14 128 C50 100 80 70 136 18" class="c1"/><line x1="10" y1="62" x2="140" y2="62" class="ds"/><circle cx="89" cy="62" r="4" class="dot"/>
+<text x="75" y="135" text-anchor="middle">일대일 O</text>
+<line x1="160" y1="110" x2="290" y2="110" class="ax"/><line x1="225" y1="10" x2="225" y2="130" class="ax"/>
+<path d="M170 20 Q225 180 280 20" class="c2"/><line x1="160" y1="62" x2="290" y2="62" class="ds"/><circle cx="191" cy="62" r="4" class="dot"/><circle cx="259" cy="62" r="4" class="dot"/>
+<text x="225" y="135" text-anchor="middle">일대일 X</text></svg>
+<figcaption>x축에 평행한 직선이 그래프와 두 점 이상에서 만나면 일대일함수가 아니다.</figcaption></figure>`,
+
+inverse: `<figure><svg class="fig" viewBox="0 0 240 200" width="240">
+<line x1="20" y1="180" x2="230" y2="180" class="ax"/><line x1="40" y1="195" x2="40" y2="5" class="ax"/>
+<line x1="30" y1="190" x2="215" y2="5" class="ds"/><text x="196" y="22">y=x</text>
+<polyline points="40,180 65,173.75 90,155 115,123.75 140,80 152.5,53.4" class="c1"/>
+<polyline points="40,180 46.25,155 65,130 96.25,105 140,80 166.5,67.5" class="c2"/>
+<circle cx="140" cy="80" r="4" class="dot"/><text x="128" y="44" class="tb">y=f(x)</text><text x="168" y="92" class="tb">y=f⁻¹(x)</text></svg>
+<figcaption>역함수 그래프는 y=x에 대칭. 증가함수면 둘의 교점은 y=x 위에 있다.</figcaption></figure>`,
+
+rational: `<figure><svg class="fig" viewBox="0 0 300 220" width="300">
+<line x1="0" y1="160" x2="300" y2="160" class="ax"/><line x1="90" y1="0" x2="90" y2="220" class="ax"/>
+<line x1="150" y1="0" x2="150" y2="220" class="ds"/><line x1="0" y1="130" x2="300" y2="130" class="ds"/>
+<polyline points="165,10 180,70 195,90 210,100 240,110 270,115 300,118" class="c1"/>
+<polyline points="0,142 30,145 60,150 90,160 120,190 129,215.7" class="c1"/>
+<circle cx="150" cy="130" r="4" class="dot"/><text x="156" y="148" class="tb">(p, q)</text>
+<text x="154" y="14">x=p</text><text x="250" y="124">y=q</text><text x="80" y="176">O</text></svg>
+<figcaption>y = k/(x−p) + q (k&gt;0). 두 점근선의 교점 (p, q)에 대해 점대칭.</figcaption></figure>`,
+
+sqrt4: `<figure><svg class="fig" viewBox="0 0 300 220" width="300">
+<g><line x1="5" y1="50" x2="145" y2="50" class="ax"/><line x1="75" y1="5" x2="75" y2="100" class="ax"/><polyline points="75,50 80,38.5 90,30 105,21.7 120,15.4 135,10" class="c1"/><text x="85" y="78">y=√x</text></g>
+<g><line x1="155" y1="50" x2="295" y2="50" class="ax"/><line x1="225" y1="5" x2="225" y2="100" class="ax"/><polyline points="225,50 230,61.5 240,70 255,78.3 270,84.6 285,90" class="c2"/><text x="168" y="28">y=−√x</text></g>
+<g><line x1="5" y1="160" x2="145" y2="160" class="ax"/><line x1="75" y1="115" x2="75" y2="210" class="ax"/><polyline points="75,160 70,148.5 60,140 45,131.7 30,125.4 15,120" class="c3"/><text x="80" y="190">y=√−x</text></g>
+<g><line x1="155" y1="160" x2="295" y2="160" class="ax"/><line x1="225" y1="115" x2="225" y2="210" class="ax"/><polyline points="225,160 220,171.5 210,180 195,188.3 180,194.6 165,200" class="c1"/><text x="232" y="140">y=−√−x</text></g></svg>
+<figcaption>근호 안의 부호는 좌우, 근호 앞의 부호는 위아래를 정한다.</figcaption></figure>`,
+};
+
+function mapDiagram(xs, ys, arrows, cap){
+  const h = 30 + Math.max(xs.length, ys.length)*34;
+  const xY = i => 30 + i*34 + (Math.max(xs.length,ys.length)-xs.length)*17;
+  const yY = i => 30 + i*34 + (Math.max(xs.length,ys.length)-ys.length)*17;
+  let s = `<figure><svg class="fig" viewBox="0 0 240 ${h}" width="240"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--mint)"/></marker></defs>`;
+  s += `<ellipse cx="55" cy="${h/2}" rx="35" ry="${h/2-8}" class="ax"/><ellipse cx="185" cy="${h/2}" rx="35" ry="${h/2-8}" class="ax"/>`;
+  xs.forEach((x,i)=>{ s += `<circle cx="55" cy="${xY(i)}" r="3" class="dot"/><text x="40" y="${xY(i)+5}" text-anchor="end">${x}</text>`; });
+  ys.forEach((y,i)=>{ s += `<circle cx="185" cy="${yY(i)}" r="3" class="dot"/><text x="200" y="${yY(i)+5}">${y}</text>`; });
+  arrows.forEach(([a,b])=>{ s += `<line x1="59" y1="${xY(a)}" x2="180" y2="${yY(b)}" class="c1" stroke-width="1.6" marker-end="url(#ah)"/>`; });
+  s += `<text x="55" y="${h-2}" text-anchor="middle" class="tb">X</text><text x="185" y="${h-2}" text-anchor="middle" class="tb">Y</text></svg>${cap?`<figcaption>${cap}</figcaption>`:''}</figure>`;
+  return s;
+}
+
+/* ---------- 단원 데이터 ---------- */
+const UNITS = [];
+
+/* ===== 1. 명제 ===== */
+UNITS.push({
+id:'prop', name:'명제',
+concepts:[
+{ id:'c1', title:'명제, 조건, 진리집합', body: R`
+<p><b>명제</b>는 참인지 거짓인지 분명히 판별할 수 있는 문장이나 식이에요. ‘2는 소수이다’(참)도, ‘3&gt;5’(거짓)도 둘 다 명제예요. 반면 ‘\(x+1=3\)’처럼 \(x\) 값에 따라 참·거짓이 바뀌는 건 <b>조건</b>이에요.</p>
+<p><b>진리집합</b>: 전체집합 \(U\)의 원소 중 조건 \(p\)를 참으로 만드는 것들의 모임 \(P\).</p>
+<div class="key"><b>부정</b>조건 \(\sim p\)의 진리집합은 \(P^C\).<br>‘\(p\) 또는 \(q\)’의 부정은 ‘\(\sim p\) 그리고 \(\sim q\)’, ‘\(p\) 그리고 \(q\)’의 부정은 ‘\(\sim p\) 또는 \(\sim q\)’.</div>
+<p>예: \(-1 < x \le 2\) 는 ‘\(x>-1\) 그리고 \(x\le 2\)’ 이므로, 부정은 ‘\(x \le -1\) 또는 \(x > 2\)’.</p>
+<div class="warn"><b>자주 틀림</b>\(ab=0\) 은 ‘\(a=0\) 또는 \(b=0\)’. 그래서 부정은 ‘\(a\ne0\) 그리고 \(b\ne0\)’, 즉 \(ab\ne0\).<br>\(a^2+b^2=0\) 은 ‘\(a=0\) 그리고 \(b=0\)’. 부정은 ‘\(a\ne0\) 또는 \(b\ne0\)’.</div>`},
+{ id:'c2', title:'명제 p → q 의 참, 거짓', body: R`
+<p>‘\(p\)이면 \(q\)이다’에서 \(p\)를 가정, \(q\)를 결론이라고 해요. 참·거짓은 진리집합의 포함 관계로 판단해요.</p>
+${FIG.vennSub}
+<div class="key"><b>판정법</b>\(P \subset Q\) 이면 참, \(P \not\subset Q\) 이면 거짓.</div>
+${FIG.vennCex}
+<p>거짓임을 보일 땐 <b>반례 하나</b>면 충분해요. 반례는 가정은 만족하는데 결론은 만족하지 않는 것, 즉 \(P-Q\)의 원소예요.</p>
+<div class="tip"><b>요령</b>‘\(x^2=4\)이면 \(x=2\)’처럼 제곱이 나오면 음수를 먼저 넣어 보세요. ‘\(x+y\)가 무리수이면 \(x, y\) 모두 무리수’ 같은 건 \(x=\sqrt2,\ y=1\) 같은 섞인 경우를 넣어 보세요.</div>`},
+{ id:'c3', title:'‘모든’과 ‘어떤’', body: R`
+<ul><li>‘모든 \(x\)에 대하여 \(p\)’ 는 \(P=U\) 일 때 참. 반례가 하나라도 있으면 거짓.</li>
+<li>‘어떤 \(x\)에 대하여 \(p\)’ 는 \(P\ne\varnothing\) 일 때 참. 만족하는 \(x\)가 하나만 있어도 참.</li></ul>
+<div class="key"><b>부정</b>‘모든’ ↔ ‘어떤’을 바꾸고, 뒤의 조건을 부정한다.<br>‘모든 실수 \(x\)에 대하여 \(x^2\ge0\)’ 의 부정은 ‘어떤 실수 \(x\)에 대하여 \(x^2<0\)’.</div>`},
+{ id:'c4', title:'역과 대우', body: R`
+<p>명제 \(p\to q\) 에 대하여 역은 \(q\to p\), 대우는 \(\sim q\to\sim p\).</p>
+${FIG.contra}
+<div class="key"><b>핵심</b>명제와 그 대우는 참·거짓이 항상 같다. 역은 따로 확인해야 한다.</div>
+<div class="tip"><b>대우가 쓸모 있을 때</b>조건에 ‘\(\ne\)’가 있으면 대우로 바꿔 ‘\(=\)’로 만들면 쉬워요.<br>‘\(x^2-ax+3\ne0\)이면 \(x-1\ne0\)’이 참 ⟺ 대우 ‘\(x=1\)이면 \(x^2-ax+3=0\)’이 참 ⟹ \(1-a+3=0\), \(a=4\).</div>`},
+{ id:'c5', title:'충분조건과 필요조건', body: R`
+<p>\(p\to q\) 가 참이면 기호로 \(p \Rightarrow q\), 이때</p>
+<div class="key"><b>정의</b>\(p\)는 \(q\)이기 위한 <b>충분조건</b>, \(q\)는 \(p\)이기 위한 <b>필요조건</b>.<br>\(p\Rightarrow q\) 이고 \(q\Rightarrow p\) 이면 필요충분조건 (\(P=Q\)).</div>
+${FIG.vennSub}
+<p>외우는 법: <b>작은 집합이 충분, 큰 집합이 필요</b>. 화살표가 나가는 쪽이 충분, 들어오는 쪽이 필요.</p>
+<div class="tip"><b>연결하기 (삼단논법)</b>\(p\Rightarrow q\), \(q\Rightarrow r\) 이면 \(p\Rightarrow r\). 이때 대우도 같이 쓴다: \(q\Rightarrow r\) 이면 \(\sim r\Rightarrow\sim q\).</div>
+<div class="warn"><b>문장 읽기</b>‘\(q\)는 \(p\)이기 위한 필요조건’ = \(p\Rightarrow q\) = \(P\subset Q\). 문장 끝 ‘~이기 위한’ 앞의 것이 출발점이에요.</div>`},
+{ id:'c6', title:'증명: 대우 증명법, 귀류법', body: R`
+<p><b>대우를 이용한 증명</b>: 원래 명제 대신 대우가 참임을 보인다.<br>예) ‘\(n^2\)이 짝수이면 \(n\)은 짝수’ ← 대우 ‘\(n\)이 홀수이면 \(n^2\)은 홀수’: \(n=2k+1\) 이면 \(n^2=2(2k^2+2k)+1\) 은 홀수.</p>
+<p><b>귀류법</b>: 결론을 부정해서 가정하고, 모순을 이끌어 낸다.<br>예) \(\sqrt2\)가 유리수라 하면 \(\sqrt2=\dfrac{m}{n}\) (서로소) → \(m^2=2n^2\) → \(m\) 짝수 → \(n\)도 짝수 → 서로소에 모순.</p>
+<div class="tip"><b>서술형 포인트</b>빈칸 채우기형이 자주 나와요. ‘\(m^2\)이 짝수이므로 \(m\)도 짝수’처럼 대우 증명 결과를 쓰는 줄이 핵심이에요.</div>`},
+],
+checks:[
+{ c:'c2', q:R`명제 ‘\(x^2=1\)이면 \(x=1\)이다.’ (단, \(x\)는 실수)에 대한 설명으로 옳은 것은?`,
+  ch:[R`참이다`, R`거짓이고, 반례는 \(x=1\)`, R`거짓이고, 반례는 \(x=-1\)`, R`참·거짓을 판별할 수 없다`], a:2,
+  deep:R`<p>진리집합으로 보면 \(P=\{-1,1\}\), \(Q=\{1\}\) 이라 \(P\not\subset Q\). 반례는 \(P-Q=\{-1\}\) 에서 나와요.</p><p>한 걸음 더: 이 명제의 <b>역</b> ‘\(x=1\)이면 \(x^2=1\)’은 참이에요. 원래 명제가 거짓이어도 역은 참일 수 있다는 것, 시험에 그대로 나와요.</p>`,
+  review:R`<p>\(p\to q\)가 거짓이려면 ‘가정은 만족하는데 결론은 틀리는’ 예가 필요해요. \(x=-1\)은 \(x^2=1\)을 만족하지만 \(x=1\)은 아니죠. 이게 반례예요.</p><p>\(x=1\)은 가정과 결론을 둘 다 만족하니까 반례가 될 수 없어요.</p>` },
+{ c:'c5', q:R`두 조건 \(p: x\le 3\), \(q: x\le a\) 에 대하여 \(p\)가 \(q\)이기 위한 충분조건이 되도록 하는 실수 \(a\)의 최솟값은?`,
+  ch:['1','2','3','4','5'], a:2,
+  deep:R`<p>\(p\Rightarrow q\) 이므로 \(P\subset Q\): \(\{x\mid x\le3\}\subset\{x\mid x\le a\}\) → \(a\ge3\). 최솟값 3.</p><p>심화: 이번엔 ‘\(p\)가 \(q\)이기 위한 <b>필요</b>조건’이라면? \(Q\subset P\) 가 되어 \(a\le3\), 최댓값이 3이 돼요. 등호가 들어가는지(경계값)는 수직선에 점을 찍어서 꼭 확인하세요.</p>`,
+  review:R`<p>‘\(p\)가 \(q\)이기 위한 충분조건’ = \(p\Rightarrow q\) = \(P\subset Q\). 작은 쪽이 충분이에요.</p><p>수직선에서 \(x\le3\) 전체가 \(x\le a\) 안에 들어가야 하니 \(a\)는 3 이상이어야 해요.</p>` },
+{ c:'c3', q:R`명제 ‘모든 실수 \(x\)에 대하여 \(x^2\ge 0\)이다.’의 부정은?`,
+  ch:[R`모든 실수 \(x\)에 대하여 \(x^2<0\)이다.`, R`어떤 실수 \(x\)에 대하여 \(x^2\ge0\)이다.`, R`어떤 실수 \(x\)에 대하여 \(x^2<0\)이다.`, R`어떤 실수 \(x\)에 대하여 \(x^2\le0\)이다.`], a:2,
+  deep:R`<p>원래 명제는 참이니 부정은 거짓이에요. 부정했을 때 참·거짓이 뒤집히는지도 같이 체크하는 습관을 들이세요.</p><p>심화: ‘어떤 \(x\)에 대하여 \(x^2-2x+k\le0\)’이 참이 되려면 판별식 \(D\ge0\)이면 돼요. ‘모든 \(x\)에 대하여 \(x^2-2x+k>0\)’은 그 부정이라 \(D<0\)이 조건이 됩니다.</p>`,
+  review:R`<p>부정은 두 군데를 바꿔요: ‘모든’ → ‘어떤’, 그리고 \(x^2\ge0\) → \(x^2<0\).</p><p>\(\ge\)의 부정은 \(<\)예요. \(\le\)가 아니에요.</p>` },
+],
+problems:[
+{ id:'0951', tag:'진리집합', c:'c1', t:90, src:'유형 해결의 법칙 공통수학2 p.132, 0951번 (STEP 3 내신 마스터)',
+  q:R`전체집합 \(U=\{x\mid x는\ 24의\ 약수\}\)에 대하여 조건 \(p\)가 \(p: 17-3x<-1\) 일 때, 조건 \(\sim p\)의 진리집합의 원소의 개수는?`,
+  ch:['2','3','4','5','6'], a:3,
+  hint:R`부등식을 먼저 풀고, \(U\)의 원소를 전부 적은 뒤 빼 보세요.`,
+  sol:R`<div class="step">\(U=\{1,2,3,4,6,8,12,24\}\)</div>
+<div class="step">\(17-3x<-1\) → \(-3x<-18\) → \(x>6\) (음수로 나누면 부등호 방향이 바뀌어요). 그래서 \(P=\{8,12,24\}\).</div>
+<div class="step">\(\sim p\)의 진리집합은 \(P^C=\{1,2,3,4,6\}\), 원소 5개.</div>
+<div class="key"><b>쓴 개념</b>\(\sim p\)의 진리집합 = \(P^C\)</div>`,
+  v:{ q:R`전체집합 \(U=\{x\mid x는\ 18의\ 약수\}\)에 대하여 조건 \(p: 2x-5>7\) 일 때, 조건 \(\sim p\)의 진리집합의 원소의 개수는?`,
+      ch:['2','3','4','5','6'], a:2, hint:R`\(U\)부터 나열하세요.`,
+      sol:R`<div class="step">\(U=\{1,2,3,6,9,18\}\)</div><div class="step">\(2x>12\) → \(x>6\), \(P=\{9,18\}\)</div><div class="step">\(P^C=\{1,2,3,6\}\), 4개.</div>` } },
+
+{ id:'0952', tag:'명제의 참, 거짓', c:'c2', t:100, src:'유형 해결의 법칙 공통수학2 p.132, 0952번 (STEP 3 내신 마스터)',
+  q:R`\(x, y\)가 실수일 때, 다음 중 참인 명제는?`,
+  ch:[R`\(x^2>4\)이면 \(x>2\)이다.`, R`\(x+y>2\)이면 \(x>1\)이고 \(y>1\)이다.`, R`\((x-2)(y-3)=0\)이면 \(x=2\) 또는 \(y=3\)이다.`, R`\(x+y\)가 무리수이면 \(x, y\)는 무리수이다.`, R`\(x\)가 자연수일 때, \(x\)가 소수이면 \(x^2\)은 홀수이다.`], a:2,
+  hint:R`나머지 네 개는 반례 하나씩 찾으면 끝나요.`,
+  sol:R`<div class="step">① \(x=-3\)이면 \(x^2=9>4\)인데 \(x<2\). 거짓.</div>
+<div class="step">② \(x=0,\ y=3\)이면 \(x+y=3>2\)인데 \(x>1\)이 아님. 거짓.</div>
+<div class="step">③ \(AB=0\)이면 \(A=0\) 또는 \(B=0\). 참.</div>
+<div class="step">④ \(x=\sqrt2,\ y=0\)이면 \(x+y\)는 무리수인데 \(y\)는 유리수. 거짓.</div>
+<div class="step">⑤ \(x=2\)는 소수인데 \(x^2=4\)는 짝수. 거짓.</div>
+<div class="key"><b>쓴 개념</b>거짓은 반례 하나로 보인다.</div>`,
+  v:{ q:R`\(x, y\)가 실수일 때, 다음 중 참인 명제는?`,
+      ch:[R`\(x^2=4\)이면 \(x=2\)이다.`, R`\(xy>0\)이면 \(x>0\)이고 \(y>0\)이다.`, R`\(x>1\)이면 \(x^2>1\)이다.`, R`\(x+y>0\)이면 \(x>0\)이다.`, R`\(x^2+y^2>0\)이면 \(x\ne0\)이고 \(y\ne0\)이다.`], a:2,
+      hint:R`음수, 0을 넣어 보세요.`,
+      sol:R`<div class="step">① \(x=-2\) ② \(x=y=-1\) ④ \(x=-1,\ y=3\) ⑤ \(x=1,\ y=0\) 이 반례.</div><div class="step">③ \(x>1\)이면 \(x^2>1\cdot x>1\). 참.</div>` } },
+
+{ id:'0955', tag:'진리집합의 포함 관계', c:'c2', t:100, src:'유형 해결의 법칙 공통수학2 p.132, 0955번 (STEP 3 내신 마스터)',
+  q:R`두 조건 \(p: x\le-3\) 또는 \(x\ge3\), \(q: x<a\) 에 대하여 명제 ‘\(\sim p\)이면 \(q\)이다.’가 참이 되도록 하는 실수 \(a\)의 값의 범위는?`,
+  ch:[R`\(a\le-3\)`, R`\(a<-3\)`, R`\(a<3\)`, R`\(-3<a<3\)`, R`\(a\ge3\)`], a:4,
+  hint:R`\(\sim p\)를 먼저 구하고 수직선에 그려 보세요.`,
+  sol:R`<div class="step">\(\sim p: -3<x<3\). 명제가 참이려면 \(\{x\mid -3<x<3\}\subset\{x\mid x<a\}\).</div>
+<figure><svg class="fig" viewBox="0 0 300 90" width="300"><line x1="10" y1="62" x2="290" y2="62" class="ax"/>
+<line x1="90" y1="44" x2="190" y2="44" class="c1" stroke-width="4"/><circle cx="90" cy="44" r="5" class="hole"/><circle cx="190" cy="44" r="5" class="hole"/>
+<line x1="230" y1="20" x2="12" y2="20" class="c3"/><circle cx="230" cy="20" r="5" class="hole"/>
+<text x="90" y="82" text-anchor="middle">−3</text><text x="190" y="82" text-anchor="middle">3</text><text x="230" y="82" text-anchor="middle">a</text><text x="140" y="38" text-anchor="middle">~p</text><text x="40" y="14">q</text></svg></figure>
+<div class="step">\(a\)가 3보다 오른쪽이거나 3과 같으면 돼요. \(a=3\)일 때 \(q: x<3\)이고 \(\sim p\)에 3이 포함되지 않으니 괜찮아요.</div>
+<div class="step">따라서 \(a\ge3\).</div>
+<div class="warn"><b>경계값</b>열린 끝(○)끼리 만나면 등호 포함, 닫힌 끝(●)이 열린 끝을 넘어가면 등호 제외. 그림으로 확인하는 게 제일 안전해요.</div>`,
+  v:{ q:R`두 조건 \(p: x<-2\) 또는 \(x>4\), \(q: x>a\) 에 대하여 명제 ‘\(\sim p\)이면 \(q\)이다.’가 참이 되도록 하는 실수 \(a\)의 값의 범위는?`,
+      ch:[R`\(a<-2\)`, R`\(a\le-2\)`, R`\(a<4\)`, R`\(a\ge4\)`, R`\(a>-2\)`], a:0, hint:R`\(\sim p\)는 등호를 포함해요.`,
+      sol:R`<div class="step">\(\sim p: -2\le x\le4\). 이것이 \(x>a\) 안에 들어가야 해요.</div><div class="step">\(a=-2\)이면 \(q: x>-2\)라서 \(x=-2\)가 빠져요. 그래서 등호가 안 돼요: \(a<-2\).</div>` } },
+
+{ id:'0870', tag:'대우로 미지수 구하기', c:'c4', t:80, src:'유형 해결의 법칙 공통수학2 p.120, 0870번 (STEP 2 유형 10 대표 문제)',
+  q:R`명제 ‘\(4x^2-ax+3\ne0\)이면 \(2x-3\ne0\)이다.’가 참일 때, 상수 \(a\)의 값은?`,
+  ch:['2','4','6','8','10'], a:3,
+  hint:R`‘\(\ne\)’가 있으면 대우.`,
+  sol:R`<div class="step">대우: ‘\(2x-3=0\)이면 \(4x^2-ax+3=0\)이다.’ 원래 명제가 참이면 대우도 참.</div>
+<div class="step">\(x=\dfrac{3}{2}\) 을 대입: \(4\cdot\dfrac{9}{4}-\dfrac{3}{2}a+3=0\) → \(12=\dfrac{3}{2}a\) → \(a=8\).</div>
+<div class="key"><b>쓴 개념</b>명제와 대우의 참·거짓은 같다.</div>`,
+  v:{ q:R`명제 ‘\(x^2+ax-6\ne0\)이면 \(x-2\ne0\)이다.’가 참일 때, 상수 \(a\)의 값은?`, ch:['−1','1','2','3','4'], a:1, hint:R`대우로 바꾸면 \(x=2\)를 대입하게 돼요.`,
+      sol:R`<div class="step">대우: \(x=2\)이면 \(x^2+ax-6=0\). \(4+2a-6=0\) → \(a=1\).</div>` } },
+
+{ id:'0958', tag:'역과 대우의 참, 거짓', c:'c4', t:120, src:'유형 해결의 법칙 공통수학2 p.133, 0958번 (STEP 3 내신 마스터)',
+  q:R`다음 보기 중 그 역은 참이고, 대우는 거짓인 명제인 것만을 있는 대로 고른 것은? (단, \(x\)는 실수이고 \(A, B\)는 공집합이 아닌 집합이다.)<div class="key">ㄱ. \(x^2\ge9\)이면 \(x\ge3\)이다.<br>ㄴ. \(A\subset B\)이면 \(A\cup B=B\)이다.<br>ㄷ. \(x>2\)이면 \(2x+4>0\)이다.</div>`,
+  ch:['ㄱ','ㄷ','ㄱ, ㄴ','ㄱ, ㄷ','ㄴ, ㄷ'], a:0,
+  hint:R`대우가 거짓 = 원래 명제가 거짓. 원래 명제부터 판정하세요.`,
+  sol:R`<div class="step">대우가 거짓 ⟺ 원래 명제가 거짓. 그래서 ‘원래 명제 거짓, 역 참’인 것을 찾으면 돼요.</div>
+<div class="step">ㄱ. \(x=-4\)이면 \(x^2=16\ge9\)인데 \(x<3\) → 명제 거짓. 역 ‘\(x\ge3\)이면 \(x^2\ge9\)’ 참. 해당 ✔</div>
+<div class="step">ㄴ. \(A\subset B\)이면 \(A\cup B=B\) 참 → 대우도 참. 해당 ✘</div>
+<div class="step">ㄷ. \(x>2\)이면 \(2x+4>8>0\) 참 → 대우 참. 해당 ✘</div>
+<div class="key"><b>쓴 개념</b>대우 = 원래 명제와 같은 참·거짓</div>`,
+  v:{ q:R`다음 보기 중 그 역은 참이고, 대우는 거짓인 명제인 것만을 있는 대로 고른 것은? (단, \(x, y\)는 실수)<div class="key">ㄱ. \(x>0\)이면 \(x>1\)이다.<br>ㄴ. \(xy=0\)이면 \(x=0\)이다.<br>ㄷ. \(x=2\)이면 \(x^2=4\)이다.</div>`,
+      ch:['ㄱ','ㄴ','ㄷ','ㄱ, ㄴ','ㄴ, ㄷ'], a:3, hint:R`원래 명제가 거짓인 것부터.`,
+      sol:R`<div class="step">ㄱ. 명제 거짓(\(x=\frac12\)), 역 ‘\(x>1\)이면 \(x>0\)’ 참 ✔</div><div class="step">ㄴ. 명제 거짓(\(x=1,\ y=0\)), 역 ‘\(x=0\)이면 \(xy=0\)’ 참 ✔</div><div class="step">ㄷ. 명제 참 → 대우도 참 ✘</div>` } },
+
+{ id:'0959', tag:'진리집합과 명제', c:'c5', t:90, src:'유형 해결의 법칙 공통수학2 p.133, 0959번 (STEP 3 내신 마스터)',
+  q:R`전체집합 \(U\)에 대하여 세 조건 \(p, q, r\)의 진리집합을 각각 \(P, Q, R\)라 하면 \(P-Q=\varnothing\), \(Q-R=\varnothing\)인 관계가 성립할 때, 다음 중 항상 참이라고 할 수 <b>없는</b> 명제는?`,
+  ch:[R`\(p\to q\)`, R`\(q\to r\)`, R`\(p\to r\)`, R`\(\sim r\to\sim p\)`, R`\(\sim p\to\sim r\)`], a:4,
+  hint:R`\(P-Q=\varnothing\) 은 무슨 포함 관계일까요?`,
+  sol:R`<div class="step">\(P-Q=\varnothing\) ⟺ \(P\subset Q\), \(Q-R=\varnothing\) ⟺ \(Q\subset R\). 그래서 \(P\subset Q\subset R\).</div>
+<figure><svg class="fig" viewBox="0 0 300 150" width="280"><ellipse cx="150" cy="75" rx="135" ry="66" class="c1"/><ellipse cx="130" cy="78" rx="85" ry="45" class="c3"/><ellipse cx="110" cy="80" rx="40" ry="24" class="c2"/>
+<text x="102" y="85" class="tb">P</text><text x="186" y="84" class="tb">Q</text><text x="258" y="80" class="tb">R</text></svg></figure>
+<div class="step">①②③ 포함 관계 그대로 참. ④는 ③의 대우라 참.</div>
+<div class="step">⑤ \(\sim p\to\sim r\) 은 \(r\to p\) 의 대우, 즉 \(R\subset P\) 여야 하는데 항상 성립하진 않아요.</div>`,
+  v:{ q:R`세 조건 \(p, q, r\)의 진리집합 \(P, Q, R\)에 대하여 \(Q\cup P=P\), \(R\cap Q=R\)일 때, 다음 중 항상 참이라고 할 수 <b>없는</b> 명제는?`,
+      ch:[R`\(q\to p\)`, R`\(r\to p\)`, R`\(r\to q\)`, R`\(\sim p\to\sim r\)`, R`\(p\to r\)`], a:4, hint:R`\(Q\cup P=P\) 는 \(Q\subset P\).`,
+      sol:R`<div class="step">\(Q\cup P=P\) → \(Q\subset P\), \(R\cap Q=R\) → \(R\subset Q\). 그래서 \(R\subset Q\subset P\).</div><div class="step">⑤ \(p\to r\)은 \(P\subset R\) 이 필요해서 항상 참은 아니에요. ④는 \(r\to p\)의 대우라 참.</div>` } },
+
+{ id:'0961', tag:'필요조건과 미지수', c:'c5', t:120, src:'유형 해결의 법칙 공통수학2 p.133, 0961번 (STEP 3 내신 마스터)',
+  q:R`두 조건 \(p: 3x-a=0\), \(q: x^3-7x^2+4x+12=0\) 에 대하여 \(q\)는 \(p\)이기 위한 필요조건이 되도록 하는 모든 실수 \(a\)의 값의 합은?`,
+  ch:['18','21','24','27','30'], a:1,
+  hint:R`‘\(q\)는 \(p\)이기 위한 필요조건’ → \(p\Rightarrow q\). 삼차식은 인수정리로.`,
+  sol:R`<div class="step">\(p\Rightarrow q\) 이므로 \(P\subset Q\).</div>
+<div class="step">\(x=2\) 대입: \(8-28+8+12=0\). 조립제법으로 \((x-2)(x^2-5x-6)=(x-2)(x-6)(x+1)\). \(Q=\{-1,2,6\}\).</div>
+<div class="step">\(P=\left\{\dfrac{a}{3}\right\}\) 이 \(Q\)에 들어가야 하니 \(\dfrac{a}{3}=-1,\ 2,\ 6\) → \(a=-3,\ 6,\ 18\).</div>
+<div class="step">합: \(-3+6+18=21\).</div>`,
+  v:{ q:R`두 조건 \(p: 2x-a=0\), \(q: x^2-x-6=0\) 에 대하여 \(q\)는 \(p\)이기 위한 필요조건이 되도록 하는 모든 실수 \(a\)의 값의 합은?`, ch:['−2','0','2','4','6'], a:2, hint:R`\(P\subset Q\).`,
+      sol:R`<div class="step">\(Q=\{-2,3\}\), \(\dfrac{a}{2}\in Q\) → \(a=-4,\ 6\). 합 2.</div>` } },
+
+{ id:'0962', tag:'충분·필요조건 연결', c:'c5', t:90, src:'유형 해결의 법칙 공통수학2 p.133, 0962번 (STEP 3 내신 마스터)',
+  q:R`세 조건 \(p, q, r\)에 대하여 \(p\)는 \(\sim r\)이기 위한 충분조건, \(r\)는 \(q\)이기 위한 필요조건일 때, 다음 중 항상 참인 명제는?`,
+  ch:[R`\(p\to q\)`, R`\(q\to p\)`, R`\(p\to\sim q\)`, R`\(\sim q\to r\)`, R`\(\sim r\to q\)`], a:2,
+  hint:R`화살표 두 개로 바꾸고, 하나는 대우로 뒤집어서 이어 붙이세요.`,
+  sol:R`<div class="step">\(p\)는 \(\sim r\)이기 위한 충분조건 → \(p\Rightarrow\sim r\).</div>
+<div class="step">\(r\)는 \(q\)이기 위한 필요조건 → \(q\Rightarrow r\), 대우 \(\sim r\Rightarrow\sim q\).</div>
+<div class="step">이어 붙이면 \(p\Rightarrow\sim r\Rightarrow\sim q\), 즉 \(p\to\sim q\) 참.</div>`,
+  v:{ q:R`세 조건 \(p, q, r\)에 대하여 \(p\)는 \(q\)이기 위한 필요조건, \(r\)는 \(\sim q\)이기 위한 충분조건일 때, 다음 중 항상 참인 명제는?`,
+      ch:[R`\(q\to\sim r\)`, R`\(p\to r\)`, R`\(r\to q\)`, R`\(\sim p\to q\)`, R`\(r\to p\)`], a:0, hint:R`\(q\Rightarrow p\), \(r\Rightarrow\sim q\).`,
+      sol:R`<div class="step">\(r\Rightarrow\sim q\) 의 대우가 \(q\Rightarrow\sim r\). 그래서 ① 참.</div>` } },
+],
+sheet:[
+ ['참·거짓', R`\(P\subset Q\) ⟺ \(p\to q\) 참. 반례는 \(P-Q\)의 원소`],
+ ['부정', R`‘또는’↔‘그리고’, ‘모든’↔‘어떤’`],
+ ['대우', R`\(p\to q\) 와 \(\sim q\to\sim p\) 는 참·거짓이 같다`],
+ ['충분·필요', R`\(p\Rightarrow q\): \(p\) 충분, \(q\) 필요. 작은 집합이 충분`],
+]
+});
+
+/* ===== 2. 절대부등식 ===== */
+UNITS.push({
+id:'ineq', name:'절대부등식',
+concepts:[
+{ id:'c1', title:'절대부등식과 기본 부등식', body: R`
+<p>문자에 어떤 실수를 넣어도 항상 성립하는 부등식이 <b>절대부등식</b>이에요.</p>
+<ul><li>\(a^2\ge0\), \(a^2+b^2\ge0\)</li><li>\(a^2\pm ab+b^2\ge0\) (완전제곱식으로 변형)</li><li>\(|a|+|b|\ge|a+b|\) (등호는 \(ab\ge0\))</li></ul>
+<div class="key"><b>증명 방법</b>‘(좌변) − (우변)’을 완전제곱식의 합으로 만들거나, 양변이 양수면 제곱해서 비교.</div>`},
+{ id:'c2', title:'산술평균과 기하평균의 관계', body: R`
+<div class="key"><b>공식</b>\(a>0,\ b>0\) 일 때 \(\dfrac{a+b}{2}\ge\sqrt{ab}\) (등호는 \(a=b\))</div>
+${FIG.amgm}
+<p>시험에서 쓰는 모양: \(a+b\ge2\sqrt{ab}\).</p>
+<ul><li><b>곱이 일정</b>하면 합의 최솟값: \(x+\dfrac{9}{x}\ge2\sqrt{9}=6\) (\(x=3\))</li>
+<li><b>합이 일정</b>하면 곱의 최댓값: \(a+b=10\) 이면 \(ab\le25\)</li></ul>
+<div class="warn"><b>체크 2개</b>① 두 수가 양수인가? ② 등호가 실제로 성립할 수 있는가? 등호가 안 되면 그 값은 최솟값이 아니에요.</div>`},
+{ id:'c3', title:'산술·기하 활용 기술', body: R`
+<p><b>상수 만들기</b>: 곱했을 때 문자가 사라지게 식을 쪼개요.</p>
+<p>\(x>1\) 일 때 \(x+\dfrac{4}{x-1}=(x-1)+\dfrac{4}{x-1}+1\ge2\sqrt4+1=5\).</p>
+<p><b>곱해서 전개</b>: \(x+2y=4\) 일 때 \(\dfrac1x+\dfrac2y\)의 최솟값은 \(\left(\dfrac1x+\dfrac2y\right)(x+2y)\) 를 전개해서 산술·기하.</p>
+<div class="warn"><b>함정</b>산술·기하를 두 번 쓰면 등호 조건이 서로 다를 수 있어요. 등호 조건이 동시에 성립하는지 확인하세요.</div>`},
+{ id:'c4', title:'코시-슈바르츠 부등식', body: R`
+<div class="key"><b>공식</b>\((a^2+b^2)(x^2+y^2)\ge(ax+by)^2\)<br>등호는 \(\dfrac{x}{a}=\dfrac{y}{b}\) 일 때. 세 쌍도 똑같이 성립.</div>
+<p><b>언제 쓰나</b>: 일차식의 값이 주어지고 제곱의 합의 최솟값을 묻거나, 제곱의 합이 주어지고 일차식의 최댓값·최솟값을 물을 때.</p>
+<p>예) \(x^2+y^2=5\) 일 때 \(x+2y\)의 범위: \((1+4)(x^2+y^2)\ge(x+2y)^2\) → \((x+2y)^2\le25\) → \(-5\le x+2y\le5\).</p>
+<div class="tip"><b>요령</b>계수를 맞추는 게 전부예요. \(4x^2\)이 보이면 \((2x)^2\)으로 보고, 짝이 되는 계수를 정하세요.</div>`},
+],
+checks:[
+{ c:'c2', q:R`\(x>0\) 일 때 \(x+\dfrac{9}{x}\) 의 최솟값은?`, ch:['3','6','9','10','18'], a:1,
+  deep:R`<p>\(x+\dfrac9x\ge2\sqrt{x\cdot\dfrac9x}=6\), 등호는 \(x=\dfrac9x\) 즉 \(x=3\).</p><p>심화: 범위가 \(x\ge4\) 로 제한되면? 등호 조건 \(x=3\)이 범위 밖이라 산술·기하로는 최솟값을 못 구해요. 이때는 \(x=4\)에서 최소, \(4+\dfrac94=\dfrac{25}{4}\).</p>`,
+  review:R`<p>두 양수의 곱 \(x\cdot\dfrac9x=9\)가 일정하니 합의 최솟값은 \(2\sqrt9=6\).</p><p>공식: \(a+b\ge2\sqrt{ab}\). 9를 답으로 골랐다면 루트를 빼먹은 거예요.</p>` },
+{ c:'c4', q:R`실수 \(x, y\)에 대하여 \(x^2+y^2=5\) 일 때 \(x+2y\)의 최댓값은?`, ch:['3','4','5','10','25'], a:2,
+  deep:R`<p>\((1^2+2^2)(x^2+y^2)\ge(x+2y)^2\) → \(25\ge(x+2y)^2\) → 최댓값 5. 등호: \(\dfrac{x}{1}=\dfrac{y}{2}\), 즉 \(y=2x\)를 대입하면 \(x=1,\ y=2\).</p><p>심화: 이건 원 \(x^2+y^2=5\)와 직선 \(x+2y=k\)가 만날 조건(원의 중심과 직선 사이 거리 \(\le\) 반지름)으로도 풀 수 있어요. 도형의 방정식과 연결돼요.</p>`,
+  review:R`<p>코시-슈바르츠: \((a^2+b^2)(x^2+y^2)\ge(ax+by)^2\). 여기서 \(a=1,\ b=2\).</p><p>\(5\times5=25\ge(x+2y)^2\) 이므로 \(x+2y\le5\). 25를 골랐다면 마지막에 제곱근을 안 씌운 거예요.</p>` },
+],
+problems:[
+{ id:'0963', tag:'산술·기하 (곱해서 전개)', c:'c3', t:120, src:'유형 해결의 법칙 공통수학2 p.133, 0963번 (STEP 3 내신 마스터)',
+  q:R`양수 \(x, y\)에 대하여 \(x+2y=4\) 일 때, \(\dfrac1x+\dfrac2y\) 의 최솟값은 \(\dfrac{a}{b}\) 이다. 이때 \(a-b\)의 값은? (단, \(a, b\)는 서로소인 자연수이다.)`,
+  ch:['1','2','3','4','5'], a:4,
+  hint:R`\(\left(\dfrac1x+\dfrac2y\right)(x+2y)\) 를 전개해 보세요.`,
+  sol:R`<div class="step">\(\left(\dfrac1x+\dfrac2y\right)(x+2y)=1+\dfrac{2y}{x}+\dfrac{2x}{y}+4=5+\dfrac{2y}{x}+\dfrac{2x}{y}\)</div>
+<div class="step">산술·기하: \(\dfrac{2y}{x}+\dfrac{2x}{y}\ge2\sqrt{4}=4\). 그래서 전체 \(\ge9\) (등호 \(x=y\)).</div>
+<div class="step">\(x+2y=4\) 이므로 \(4\left(\dfrac1x+\dfrac2y\right)\ge9\) → \(\dfrac1x+\dfrac2y\ge\dfrac94\).</div>
+<div class="step">\(a=9,\ b=4\), \(a-b=5\). 등호는 \(x=y=\dfrac43\)에서 성립.</div>`,
+  v:{ q:R`양수 \(x, y\)에 대하여 \(x+3y=6\) 일 때, \(\dfrac3x+\dfrac1y\) 의 최솟값은?`, ch:['1','2','3','4','6'], a:1, hint:R`\((x+3y)\)을 곱하세요.`,
+      sol:R`<div class="step">\(\left(\dfrac3x+\dfrac1y\right)(x+3y)=3+\dfrac{9y}{x}+\dfrac{x}{y}+3\ge6+2\sqrt9=12\)</div><div class="step">\(6\left(\dfrac3x+\dfrac1y\right)\ge12\) → 최솟값 2.</div>` } },
+
+{ id:'0964', tag:'산술·기하 (치환)', c:'c3', t:120, src:'유형 해결의 법칙 공통수학2 p.133, 0964번 (STEP 3 내신 마스터)',
+  q:R`\(a>0\) 일 때, \(a+\dfrac1a+\dfrac{4a}{a^2+1}\) 의 최솟값은?`,
+  ch:['2','3','4','5','6'], a:2,
+  hint:R`\(\dfrac{4a}{a^2+1}\) 의 분모, 분자를 \(a\)로 나눠 보세요.`,
+  sol:R`<div class="step">\(\dfrac{4a}{a^2+1}=\dfrac{4}{a+\frac1a}\). \(t=a+\dfrac1a\) 라 두면 \(t\ge2\).</div>
+<div class="step">식 \(=t+\dfrac4t\ge2\sqrt4=4\), 등호는 \(t=2\).</div>
+<div class="step">\(t=2\)는 \(a=1\)일 때 가능하므로 최솟값 4.</div>
+<div class="warn"><b>체크</b>\(t\)의 범위(\(t\ge2\)) 안에 등호 조건 \(t=2\)가 있는지 꼭 확인. 범위 밖이면 다른 방법이 필요해요.</div>`,
+  v:{ q:R`\(x>1\) 일 때, \(x+\dfrac{4}{x-1}\) 의 최솟값은?`, ch:['3','4','5','6','7'], a:2, hint:R`\(x=(x-1)+1\).`,
+      sol:R`<div class="step">\((x-1)+\dfrac4{x-1}+1\ge2\sqrt4+1=5\), 등호 \(x-1=2\), \(x=3\).</div>` } },
+
+{ id:'0945', tag:'최댓값·최솟값 (제곱의 합)', c:'c4', t:150, input:'2', src:'유형 해결의 법칙 공통수학2 p.131, 0945번 (STEP 2 유형 26)',
+  q:R`실수 \(a, b, c\)에 대하여 \(a+b+c=3\), \(a^2+b^2+c^2=9\) 일 때, \(c\)의 최댓값과 최솟값의 합을 구하시오.`,
+  hint:R`\(a+b\), \(a^2+b^2\) 을 \(c\)로 나타내고 코시-슈바르츠 (\(1^2+1^2\))를 쓰세요.`,
+  sol:R`<div class="step">\(a+b=3-c\), \(a^2+b^2=9-c^2\).</div>
+<div class="step">코시-슈바르츠: \((1^2+1^2)(a^2+b^2)\ge(a+b)^2\) → \(2(9-c^2)\ge(3-c)^2\).</div>
+<div class="step">\(18-2c^2\ge9-6c+c^2\) → \(3c^2-6c-9\le0\) → \(c^2-2c-3\le0\) → \((c-3)(c+1)\le0\).</div>
+<div class="step">\(-1\le c\le3\). 최댓값 3, 최솟값 −1, 합 <b>2</b>.</div>
+<div class="tip"><b>다른 풀이</b>\(a, b\)가 실수이므로 \(t^2-(3-c)t+ab=0\)의 판별식으로 풀어도 같은 결과.</div>`,
+  v:{ q:R`실수 \(a, b, c\)에 대하여 \(a+b+c=4\), \(a^2+b^2+c^2=8\) 일 때, \(c\)의 최댓값은?`, ch:[R`\(\dfrac43\)`,'2',R`\(\dfrac83\)`,'3','4'], a:2, hint:R`\(2(a^2+b^2)\ge(a+b)^2\).`,
+      sol:R`<div class="step">\(2(8-c^2)\ge(4-c)^2\) → \(16-2c^2\ge16-8c+c^2\) → \(3c^2-8c\le0\) → \(0\le c\le\dfrac83\).</div>` } },
+
+{ id:'0944', tag:'코시-슈바르츠', c:'c4', t:90, src:'유형 해결의 법칙 공통수학2 p.131, 0944번 (STEP 2 유형 26)',
+  q:R`실수 \(x, y\)에 대하여 \(\dfrac{x}{3}+\dfrac{y}{2}=\sqrt{26}\) 일 때, \(x^2+y^2\)의 최솟값은?`,
+  ch:['18','36','54','72','90'], a:3,
+  hint:R`계수 \(\dfrac13, \dfrac12\) 과 짝을 맞추세요.`,
+  sol:R`<div class="step">\(\left\{\left(\dfrac13\right)^2+\left(\dfrac12\right)^2\right\}(x^2+y^2)\ge\left(\dfrac{x}{3}+\dfrac{y}{2}\right)^2=26\)</div>
+<div class="step">\(\dfrac19+\dfrac14=\dfrac{13}{36}\) 이므로 \(x^2+y^2\ge26\times\dfrac{36}{13}=72\).</div>`,
+  v:{ q:R`실수 \(x, y\)에 대하여 \(\dfrac{x}{4}+\dfrac{y}{3}=5\) 일 때, \(x^2+y^2\)의 최솟값은?`, ch:['100','121','144','169','196'], a:2, hint:R`\(\dfrac1{16}+\dfrac19\).`,
+      sol:R`<div class="step">\(\left(\dfrac1{16}+\dfrac19\right)(x^2+y^2)\ge25\), \(\dfrac{25}{144}(x^2+y^2)\ge25\) → \(\ge144\).</div>` } },
+
+{ id:'0946', tag:'코시-슈바르츠 (세 문자)', c:'c4', t:100, src:'유형 해결의 법칙 공통수학2 p.131, 0946번 (STEP 2 유형 26 Plus)',
+  q:R`실수 \(x, y, z\)에 대하여 \(4x+y+3z=12\) 일 때, \(4x^2+y^2+9z^2\)의 최솟값은?`,
+  ch:['20','22','24','26','28'], a:2,
+  hint:R`\(4x^2=(2x)^2\), \(9z^2=(3z)^2\). 그러면 \(4x=2\cdot(2x)\).`,
+  sol:R`<div class="step">\(X=2x,\ Y=y,\ Z=3z\) 로 보면 \(4x+y+3z=2X+Y+Z=12\).</div>
+<div class="step">\((2^2+1^2+1^2)(X^2+Y^2+Z^2)\ge(2X+Y+Z)^2=144\)</div>
+<div class="step">\(6(4x^2+y^2+9z^2)\ge144\) → 최솟값 24.</div>`,
+  v:{ q:R`실수 \(x, y, z\)에 대하여 \(2x+y+2z=9\) 일 때, \(x^2+y^2+z^2\)의 최솟값은?`, ch:['3','6','9','12','27'], a:2, hint:R`\((4+1+4)\).`,
+      sol:R`<div class="step">\(9(x^2+y^2+z^2)\ge81\) → 최솟값 9.</div>` } },
+
+{ id:'0965', tag:'산술·기하 + 코시-슈바르츠', c:'c4', t:150, src:'유형 해결의 법칙 공통수학2 p.133, 0965번 (STEP 3 내신 마스터)',
+  q:R`\(a>0,\ b>0,\ c>0,\ d>0\) 이고 \(a^2+b^2=2\), \(c^2+d^2=8\) 일 때, \(ab+cd\)의 최댓값을 \(\alpha\), \(ac+bd\)의 최댓값을 \(\beta\)라 하자. 이때 \(\alpha+\beta\)의 값은?`,
+  ch:['5','7','9','11','13'], a:2,
+  hint:R`\(ab\)는 \(a^2+b^2\)로, \(ac+bd\)는 코시-슈바르츠로.`,
+  sol:R`<div class="step">\(a^2+b^2\ge2ab\) → \(ab\le1\). \(c^2+d^2\ge2cd\) → \(cd\le4\). 등호 \(a=b=1,\ c=d=2\) 가 동시에 가능하므로 \(\alpha=5\).</div>
+<div class="step">\((a^2+b^2)(c^2+d^2)\ge(ac+bd)^2\) → \(16\ge(ac+bd)^2\) → \(\beta=4\).</div>
+<div class="step">\(\alpha+\beta=9\).</div>`,
+  v:{ q:R`양수 \(a, b, c, d\)에 대하여 \(a^2+b^2=2\), \(c^2+d^2=18\) 일 때, \(ab+cd\)의 최댓값을 \(\alpha\), \(ac+bd\)의 최댓값을 \(\beta\)라 하자. \(\alpha+\beta\)의 값은?`, ch:['12','14','16','18','20'], a:2, hint:R`\(ab\le1,\ cd\le9\).`,
+      sol:R`<div class="step">\(\alpha=1+9=10\), \(\beta=\sqrt{2\cdot18}=6\), 합 16.</div>` } },
+],
+sheet:[
+ ['산술·기하', R`\(a,b>0\): \(a+b\ge2\sqrt{ab}\), 등호 \(a=b\)`],
+ ['코시-슈바르츠', R`\((a^2+b^2)(x^2+y^2)\ge(ax+by)^2\), 등호 \(\dfrac xa=\dfrac yb\)`],
+ ['필수 체크', R`양수 조건, 등호 성립 여부`],
+]
+});
+
+/* ===== 3. 함수 ===== */
+UNITS.push({
+id:'func', name:'함수',
+concepts:[
+{ id:'c1', title:'함수의 뜻, 정의역·공역·치역', body: R`
+<p>\(X\)의 <b>각 원소</b>에 \(Y\)의 원소가 <b>오직 하나씩</b> 대응할 때 \(f: X\to Y\)를 함수라 해요.</p>
+${mapDiagram(['1','2','3'],['a','b','c'],[[0,0],[1,0],[2,1]],'함수 O: 1, 2가 같은 곳으로 가도 괜찮다. 남는 원소 c도 괜찮다.')}
+${mapDiagram(['1','2','3'],['a','b','c'],[[0,0],[0,1],[1,2]],'함수 X: 1이 두 곳으로 가고, 3은 갈 곳이 없다.')}
+<div class="key"><b>용어</b>정의역 \(X\), 공역 \(Y\), 치역 \(\{f(x)\mid x\in X\}\subset Y\).</div>
+<p>그래프로 판정: \(y\)축에 평행한 직선이 그래프와 항상 한 점에서 만나야 함수.</p>
+<div class="tip"><b>문제 유형</b>‘\(X\)에서 \(Y\)로의 함수인가’는 \(X\)의 원소를 모두 넣어서 결과가 전부 \(Y\) 안에 있는지 보는 것.</div>`},
+{ id:'c2', title:'서로 같은 함수', body: R`
+<p>두 함수 \(f, g\)가 같으려면 정의역과 공역이 각각 같고, 정의역의 모든 \(x\)에서 \(f(x)=g(x)\).</p>
+<p>예) \(X=\{-1,1\}\)에서 \(f(x)=x^2\), \(g(x)=|x|\) 는 서로 같은 함수(둘 다 1).</p>`},
+{ id:'c3', title:'일대일함수와 일대일대응', body: R`
+<div class="key"><b>정의</b>일대일함수: \(x_1\ne x_2\) 이면 \(f(x_1)\ne f(x_2)\).<br>일대일대응: 일대일함수 + 치역 = 공역.</div>
+${FIG.hline}
+<p>실수 전체에서 정의된 구간별 일차함수가 일대일대응이 되려면</p>
+<ul><li>두 직선의 기울기 부호가 같고 (곱이 양수)</li><li>경계에서 이어져야 해요(경계값이 같아야 치역 = 실수 전체).</li></ul>
+<div class="warn"><b>자주 틀림</b>\(f(x)=|2x|+x\) 처럼 절댓값이 섞이면 구간을 나눠 기울기를 확인하세요. \(x\ge0\)에서 \(3x\), \(x<0\)에서 \(-x\) → 기울기 부호가 달라 일대일 아님.</div>`},
+{ id:'c4', title:'항등함수, 상수함수, 함수의 개수', body: R`
+<ul><li>항등함수: \(f(x)=x\) (\(X\to X\))</li><li>상수함수: 모든 \(x\)에 대하여 \(f(x)=c\)</li></ul>
+<div class="key"><b>개수</b>\(n(X)=m,\ n(Y)=n\) 일 때<br>함수 \(n^m\)개, 일대일함수 \(_n\mathrm{P}_m=n(n-1)\cdots(n-m+1)\)개, 일대일대응 \(n!\)개 (\(m=n\)).</div>
+<div class="tip"><b>항등함수 문제</b>‘\(f\)가 \(X\)에서 \(X\)로의 항등함수’ → \(f(x)=x\)를 만족하는 \(x\)들이 곧 \(X\)의 원소.</div>`},
+],
+checks:[
+{ c:'c1', q:R`다음 대응 \(f: X\to Y\)에 대한 설명으로 옳은 것은?`, fig: mapDiagram(['1','2','3'],['a','b','c'],[[0,0],[1,0],[2,1]]),
+  ch:['일대일대응이다','일대일함수지만 일대일대응은 아니다','함수지만 일대일함수는 아니다','함수가 아니다'], a:2,
+  deep:R`<p>\(X\)의 모든 원소가 하나씩 대응하니 함수. 그런데 1, 2가 모두 a로 가서 일대일은 아니에요. 치역은 \(\{a,b\}\), 공역은 \(\{a,b,c\}\).</p><p>심화: \(X=\{1,2,3\}\), \(Y=\{a,b,c\}\)에서 일대일함수의 개수는 \(3\times2\times1=6\), 함수 전체는 \(3^3=27\)개예요.</p>`,
+  review:R`<p>함수 조건은 ‘\(X\)의 원소마다 화살표가 정확히 하나’. \(Y\) 쪽은 남아도 되고 겹쳐도 돼요.</p><p>일대일은 ‘\(Y\) 쪽에서 화살표를 두 개 받는 원소가 없음’. a가 두 개를 받으니 일대일이 아니에요.</p>` },
+{ c:'c4', q:R`\(n(X)=3\), \(n(Y)=4\) 일 때, \(X\)에서 \(Y\)로의 일대일함수의 개수는?`, ch:['12','24','64','81','7'], a:1,
+  deep:R`<p>첫 원소 4가지, 다음 3가지, 다음 2가지: \(4\times3\times2=24\).</p><p>심화: 함수의 개수는 \(4^3=64\), \(Y\)에서 \(X\)로의 일대일함수는 0개(원소가 모자라서 불가능). 조건 붙은 개수 문제(예: \(f(1)<f(2)<f(3)\))는 \(_4\mathrm{C}_3=4\)처럼 고르기만 하면 돼요.</p>`,
+  review:R`<p>일대일이니 \(X\)의 원소들이 서로 다른 곳으로 가야 해요. 하나 고를 때마다 선택지가 하나씩 줄어요: \(4\times3\times2\).</p><p>64는 일대일 조건 없이 아무 함수나 센 개수예요.</p>` },
+],
+problems:[
+{ id:'1123', tag:'함수의 뜻', c:'c1', t:80, src:'유형 해결의 법칙 공통수학2 p.156, 1123번 (STEP 3 내신 마스터)',
+  q:R`두 집합 \(X=\{1,2,3,4\}\), \(Y=\{1,2,3\}\)에 대하여 다음 중 \(X\)에서 \(Y\)로의 함수인 것은?`,
+  ch:[R`\(f(x)=x-1\)`, R`\(f(x)=\sqrt x\)`, R`\(f(x)=4-|-x|\)`, R`\(f(x)=x^2-1\)`, R`\(f(x)=\begin{cases}1 & (x\ge2)\\ 2 & (x<2)\end{cases}\)`], a:4,
+  hint:R`\(X\)의 원소 1, 2, 3, 4를 직접 넣어 보세요.`,
+  sol:R`<div class="step">① \(f(1)=0\notin Y\) ② \(f(2)=\sqrt2\notin Y\) ③ \(f(4)=0\notin Y\) ④ \(f(1)=0\notin Y\)</div>
+<div class="step">⑤ \(f(1)=2\), \(f(2)=f(3)=f(4)=1\). 모두 \(Y\) 안. 함수 ✔</div>`,
+  v:{ q:R`두 집합 \(X=\{0,1,2\}\), \(Y=\{0,1,2,3\}\)에 대하여 다음 중 \(X\)에서 \(Y\)로의 함수인 것은?`, ch:[R`\(f(x)=x+2\)`, R`\(f(x)=x^2\)`, R`\(f(x)=|x-1|\)`, R`\(f(x)=2x-1\)`, R`\(f(x)=2x\)`], a:2, hint:R`0, 1, 2 대입.`,
+      sol:R`<div class="step">① \(f(2)=4\) ② \(f(2)=4\) ④ \(f(0)=-1\) ⑤ \(f(2)=4\) → 모두 탈락.</div><div class="step">③ \(1, 0, 1\) 모두 \(Y\) 안.</div>` } },
+
+{ id:'1124', tag:'치역 구하기', c:'c1', t:90, src:'유형 해결의 법칙 공통수학2 p.156, 1124번 (STEP 3 내신 마스터)',
+  q:R`집합 \(X=\{x\mid-2\le x\le3\}\)을 정의역으로 하는 함수 \(f(x)=|x-1|+x\)의 치역이 \(\{f(x)\mid a\le f(x)\le b\}\)일 때, \(a+b\)의 값은?`,
+  ch:['2','4','6','8','10'], a:2,
+  hint:R`절댓값 안이 0이 되는 \(x=1\)에서 나눠요.`,
+  sol:R`<div class="step">\(x<1\): \(f(x)=-(x-1)+x=1\) (상수).</div>
+<div class="step">\(x\ge1\): \(f(x)=2x-1\), \(x=3\)에서 5.</div>
+<figure><svg class="fig" viewBox="0 0 240 160" width="240"><line x1="10" y1="140" x2="230" y2="140" class="ax"/><line x1="90" y1="150" x2="90" y2="5" class="ax"/>
+<polyline points="50,120 110,120 150,40" class="c1"/><circle cx="50" cy="120" r="3.5" class="dot"/><circle cx="150" cy="40" r="3.5" class="dot"/>
+<line x1="90" y1="40" x2="150" y2="40" class="ds"/><text x="80" y="124" text-anchor="end">1</text><text x="80" y="44" text-anchor="end">5</text><text x="50" y="155" text-anchor="middle">−2</text><text x="150" y="155" text-anchor="middle">3</text></svg></figure>
+<div class="step">치역 \(1\le f(x)\le5\), \(a+b=6\).</div>`,
+  v:{ q:R`\(X=\{x\mid-1\le x\le4\}\)을 정의역으로 하는 \(f(x)=|x-2|+x\)의 치역이 \(\{f(x)\mid a\le f(x)\le b\}\)일 때 \(a+b\)는?`, ch:['4','6','8','10','12'], a:2, hint:R`\(x=2\)에서 나눠요.`,
+      sol:R`<div class="step">\(x<2\): \(f=2\). \(x\ge2\): \(f=2x-2\), 최대 \(f(4)=6\). 치역 \([2,6]\), 합 8.</div>` } },
+
+{ id:'1125', tag:'일대일대응 판별', c:'c3', t:90, src:'유형 해결의 법칙 공통수학2 p.156, 1125번 (STEP 3 내신 마스터)',
+  q:R`실수 전체의 집합에서 정의된 보기의 함수 중 정의역의 임의의 두 원소 \(x_1, x_2\)에 대하여 \(f(x_1)=f(x_2)\)이면 \(x_1=x_2\)이고, 치역과 공역이 같은 함수인 것만을 있는 대로 고른 것은?<div class="key">ㄱ. \(f(x)=1\) &nbsp; ㄴ. \(f(x)=-2x\)<br>ㄷ. \(f(x)=|2x|+x\) &nbsp; ㄹ. \(f(x)=\begin{cases}x^2&(x\ge0)\\-x^2&(x<0)\end{cases}\)</div>`,
+  ch:['ㄱ, ㄴ','ㄱ, ㄷ','ㄴ, ㄷ','ㄴ, ㄹ','ㄷ, ㄹ'], a:3,
+  hint:R`조건 = 일대일대응. 그래프를 그려서 가로선 판정.`,
+  sol:R`<div class="step">조건은 일대일대응을 뜻해요.</div>
+<div class="step">ㄱ. 상수함수, 일대일 아님. ㄴ. 감소하는 직선, 일대일대응 ✔</div>
+<div class="step">ㄷ. \(x\ge0\): \(3x\), \(x<0\): \(-x\). 기울기 부호가 달라 V자 모양 → 일대일 아님.</div>
+<div class="step">ㄹ. \(x\ge0\)은 증가, \(x<0\)도 증가하고 0에서 이어짐 → 일대일대응 ✔</div>`,
+  v:{ q:R`실수 전체에서 정의된 보기의 함수 중 일대일대응인 것만을 있는 대로 고른 것은?<div class="key">ㄱ. \(f(x)=x^3\) &nbsp; ㄴ. \(f(x)=|x|\)<br>ㄷ. \(f(x)=x|x|\) &nbsp; ㄹ. \(f(x)=x^2+1\)</div>`, ch:['ㄱ, ㄴ','ㄱ, ㄷ','ㄴ, ㄷ','ㄴ, ㄹ','ㄷ, ㄹ'], a:1, hint:R`ㄷ은 구간을 나눠 보세요.`,
+      sol:R`<div class="step">ㄱ. 계속 증가 ✔ ㄴ. \(f(1)=f(-1)\) ✘ ㄷ. \(x\ge0\): \(x^2\), \(x<0\): \(-x^2\) → 계속 증가 ✔ ㄹ. \(f(1)=f(-1)\) ✘</div>` } },
+
+{ id:'1126', tag:'구간별 함수의 일대일대응', c:'c3', t:100, src:'유형 해결의 법칙 공통수학2 p.156, 1126번 (STEP 3 내신 마스터)',
+  q:R`실수 전체의 집합에서 정의된 함수 \(f(x)=\begin{cases}(a-1)x+2&(x\ge0)\\(a+1)x+2&(x<0)\end{cases}\)가 일대일대응이 되도록 하는 실수 \(a\)의 값의 범위는?`,
+  ch:[R`\(a\le-1\)`, R`\(a\le0\)`, R`\(-1<a<1\)`, R`\(a<-1\) 또는 \(a>1\)`, R`\(a\ge0\)`], a:3,
+  hint:R`두 직선 모두 \(x=0\)에서 2를 지나요. 남은 건 기울기 부호.`,
+  sol:R`<div class="step">두 식 모두 \(x=0\)에서 값이 2라서 이어져 있어요.</div>
+<div class="step">일대일대응이려면 두 기울기의 부호가 같아야 함: \((a-1)(a+1)>0\).</div>
+<div class="step">\(a<-1\) 또는 \(a>1\). (기울기가 0이면 상수 구간이 생겨 안 돼요.)</div>`,
+  v:{ q:R`\(f(x)=\begin{cases}(a+2)x+1&(x\ge0)\\(3-a)x+1&(x<0)\end{cases}\)가 일대일대응이 되도록 하는 \(a\)의 범위는?`, ch:[R`\(a<-2\)`, R`\(-2<a<3\)`, R`\(a>3\)`, R`\(a<-2\) 또는 \(a>3\)`, R`\(-3<a<2\)`], a:1, hint:R`\((a+2)(3-a)>0\).`,
+      sol:R`<div class="step">\((a+2)(3-a)>0\) → \((a+2)(a-3)<0\) → \(-2<a<3\).</div>` } },
+
+{ id:'1127', tag:'항등함수', c:'c4', t:120, src:'유형 해결의 법칙 공통수학2 p.156, 1127번 (STEP 3 내신 마스터)',
+  q:R`네 개의 서로 다른 실수를 원소로 갖는 집합 \(X\)에 대하여 \(X\)에서 \(X\)로의 함수 \(f(x)=\begin{cases}-5&(x<-4)\\x^2+2x-6&(-4\le x<3)\\7&(x\ge3)\end{cases}\)이 항등함수일 때, \(f(x)\)의 모든 함숫값들의 합은?`,
+  ch:['−2','−1','0','1','2'], a:3,
+  hint:R`구간마다 \(f(x)=x\) 를 풀고, 그 구간에 들어가는지 확인.`,
+  sol:R`<div class="step">\(x<-4\): \(-5=x\) → \(x=-5\) ✔ (범위 안)</div>
+<div class="step">\(-4\le x<3\): \(x^2+2x-6=x\) → \(x^2+x-6=0\) → \(x=2,\ -3\) 둘 다 범위 안 ✔</div>
+<div class="step">\(x\ge3\): \(7=x\) ✔</div>
+<div class="step">\(X=\{-5,-3,2,7\}\). 항등함수라 함숫값 = 원소, 합 \(1\).</div>`,
+  v:{ q:R`네 개의 서로 다른 실수를 원소로 갖는 집합 \(X\)에서 \(X\)로의 함수 \(f(x)=\begin{cases}-4&(x<-3)\\x^2+x-3&(-3\le x<2)\\5&(x\ge2)\end{cases}\)이 항등함수일 때, 모든 함숫값의 합은?`, ch:['−1','0','1','2','3'], a:2, hint:R`가운데 구간은 \(x^2=3\).`,
+      sol:R`<div class="step">\(x=-4\), \(x=\pm\sqrt3\) (둘 다 \([-3,2)\) 안), \(x=5\). 합 \(-4+0+5=1\).</div>` } },
+
+{ id:'1128', tag:'조건 있는 함수의 개수', c:'c4', t:120, src:'유형 해결의 법칙 공통수학2 p.156, 1128번 (STEP 3 내신 마스터)',
+  q:R`집합 \(X=\{1,2,3,4,5\}\)에 대하여 \(X\)에서 \(X\)로의 함수 중 다음 조건을 만족시키는 함수 \(f\)의 개수는?<div class="key">(가) 임의의 \(x\in X\)에 대하여 \(x+f(x)\)는 짝수이다.<br>(나) 함수 \(f\)는 일대일대응이다.</div>`,
+  ch:['8','10','12','14','16'], a:2,
+  hint:R`\(x+f(x)\)가 짝수 → \(x\)와 \(f(x)\)의 홀짝이 같다.`,
+  sol:R`<div class="step">홀수 \(\{1,3,5\}\)는 홀수끼리, 짝수 \(\{2,4\}\)는 짝수끼리 대응.</div>
+<div class="step">일대일대응이니 홀수끼리 \(3!=6\), 짝수끼리 \(2!=2\).</div>
+<div class="step">\(6\times2=12\).</div>`,
+  v:{ q:R`\(X=\{1,2,3,4\}\)에서 \(X\)로의 일대일대응 \(f\) 중 모든 \(x\)에 대하여 \(x+f(x)\)가 홀수인 것의 개수는?`, ch:['2','4','6','8','24'], a:1, hint:R`홀수는 짝수로, 짝수는 홀수로.`,
+      sol:R`<div class="step">\(\{1,3\}\to\{2,4\}\): \(2!\), \(\{2,4\}\to\{1,3\}\): \(2!\). 곱 4.</div>` } },
+],
+sheet:[
+ ['함수 개수', R`함수 \(n^m\), 일대일 \(_n\mathrm{P}_m\), 일대일대응 \(n!\)`],
+ ['일대일대응 (구간별 직선)', R`기울기 부호 같고, 경계에서 연결`],
+ ['항등함수', R`\(f(x)=x\) 의 해 = 정의역의 원소`],
+]
+});
+
+/* ===== 4. 합성함수와 역함수 ===== */
+UNITS.push({
+id:'inv', name:'합성함수와 역함수',
+concepts:[
+{ id:'c1', title:'합성함수', body: R`
+<div class="key"><b>정의</b>\((f\circ g)(x)=f(g(x))\). 안쪽 \(g\)를 먼저 계산한다.</div>
+<p>예) \(f(x)=2x+1,\ g(x)=x^2\): \((f\circ g)(2)=f(4)=9\), \((g\circ f)(2)=g(5)=25\).</p>
+<ul><li>교환법칙 X: \(f\circ g\ne g\circ f\) (일반적으로)</li><li>결합법칙 O: \((f\circ g)\circ h=f\circ(g\circ h)\)</li><li>\(f\circ I=I\circ f=f\)</li></ul>
+<div class="tip"><b>\(f\circ g=h\) 에서 \(f(\square)\) 구하기</b>식 전체를 구하지 말고, \(g(x)=\square\) 가 되는 \(x\)를 찾아 \(h(x)\)에 넣으면 끝.</div>
+<div class="tip"><b>규칙 찾기</b>\(f(n)=\) ‘\(n\) 이하 소수의 개수’ 같은 함수의 반복 합성은 안쪽부터 하나씩 계산.</div>`},
+{ id:'c2', title:'역함수의 뜻과 구하는 법', body: R`
+<p>\(f\)가 <b>일대일대응</b>일 때만 역함수 \(f^{-1}\)이 존재해요.</p>
+<div class="key"><b>핵심</b>\(f(a)=b\) ⟺ \(f^{-1}(b)=a\)</div>
+<p>구하는 순서: \(y=f(x)\)를 \(x\)에 대해 풀고 → \(x\)와 \(y\)를 바꾼다. 정의역과 치역도 서로 바뀐다.</p>
+<p>예) \(y=3x-6\) → \(x=\dfrac{y}{3}+2\) → \(f^{-1}(x)=\dfrac{x}{3}+2\).</p>
+<div class="tip"><b>값만 물으면</b>\(f^{-1}(5)\)를 구하라고 하면 역함수 식을 만들지 말고 \(f(x)=5\)를 풀어요. 훨씬 빨라요.</div>`},
+{ id:'c3', title:'역함수의 성질', body: R`
+<ul><li>\((f^{-1})^{-1}=f\)</li><li>\(f^{-1}\circ f=I\), \(f\circ f^{-1}=I\)</li><li>\((f\circ g)^{-1}=g^{-1}\circ f^{-1}\) (양말 신고 신발 신고, 벗을 땐 신발 먼저)</li></ul>
+<div class="warn"><b>자주 틀림</b>\((g\circ f)^{-1}(2)=f^{-1}(g^{-1}(2))\). 순서가 뒤집혀요.</div>
+<p>예) \((f\circ g)^{-1}(3x-1)=x\) 이면 양변에 \(f\circ g\)를 씌워 \((f\circ g)(x)=3x-1\).</p>`},
+{ id:'c4', title:'역함수의 그래프', body: R`
+${FIG.inverse}
+<div class="key"><b>대칭</b>\(y=f(x)\)와 \(y=f^{-1}(x)\)의 그래프는 직선 \(y=x\)에 대칭.</div>
+<p>\(f\)가 <b>증가함수</b>이면 두 그래프의 교점은 \(y=f(x)\)와 \(y=x\)의 교점과 같아요. 그래서 \(f(x)=x\)를 풀면 돼요.</p>
+<div class="warn"><b>감소함수</b>는 \(y=x\) 밖에서도 만날 수 있으니 이 방법을 그대로 쓰면 안 돼요.</div>
+<p>자기 자신이 역함수인 일차함수: \(y=x\) 또는 기울기가 \(-1\)인 직선 (\(y=-x+k\)).</p>`},
+],
+checks:[
+{ c:'c1', q:R`\(f(x)=2x+1,\ g(x)=x^2\) 일 때, \((f\circ g)(2)\)의 값은?`, ch:['5','9','10','25','17'], a:1,
+  deep:R`<p>\(g(2)=4\) → \(f(4)=9\).</p><p>심화: \((f\circ g)(x)=2x^2+1\), \((g\circ f)(x)=(2x+1)^2\). 두 식이 같아지는 \(x\)를 구하면 \(2x^2+1=4x^2+4x+1\) → \(x=0\) 또는 \(x=-2\). 이렇게 교환법칙이 성립하는 점만 따로 묻는 문제도 나와요.</p>`,
+  review:R`<p>\((f\circ g)(2)=f(g(2))\). 오른쪽 \(g\)부터예요. 25를 골랐다면 \(f\)를 먼저 해서 \(g(f(2))\)를 계산한 거예요.</p>` },
+{ c:'c2', q:R`\(f(x)=3x-6\) 일 때, \(f^{-1}(x)\)는?`, ch:[R`\(3x+6\)`, R`\(\dfrac{x}{3}+2\)`, R`\(\dfrac{x}{3}-2\)`, R`\(\dfrac{1}{3x-6}\)`], a:1,
+  deep:R`<p>\(y=3x-6\) → \(x=\dfrac{y+6}{3}\) → \(f^{-1}(x)=\dfrac{x}{3}+2\).</p><p>심화: 일차함수 \(y=ax+b\)와 그 역함수의 그래프가 만나는 점은 \(y=x\) 위 (\(a>0\)일 때). \(3x-6=x\) → \((3,3)\). 계산 없이도 교점을 바로 찾을 수 있어요.</p>`,
+  review:R`<p>\(f^{-1}(x)\)는 \(\dfrac1{f(x)}\)가 아니에요. 순서: \(x\)에 대해 풀고 → \(x, y\) 바꾸기.</p><p>\(y=3x-6\) → \(3x=y+6\) → \(x=\dfrac{y}{3}+2\) → \(y=\dfrac{x}{3}+2\).</p>` },
+],
+problems:[
+{ id:'1129', tag:'합성함수의 값', c:'c1', t:80, src:'유형 해결의 법칙 공통수학2 p.156, 1129번 (STEP 3 내신 마스터)',
+  q:R`자연수 \(n\)에 대하여 \(f(n)\)을 \(n\)보다 작거나 같은 소수의 개수라 하자. 예를 들어 \(f(1)=0,\ f(2)=1\)이다. 이때 \(f(13)+(f\circ f)(13)+(f\circ f\circ f)(13)\)의 값은?`,
+  ch:['5','7','9','11','13'], a:3,
+  hint:R`\(f(13)\)부터 차례대로.`,
+  sol:R`<div class="step">13 이하 소수: 2, 3, 5, 7, 11, 13 → \(f(13)=6\).</div>
+<div class="step">\((f\circ f)(13)=f(6)=3\) (2, 3, 5).</div>
+<div class="step">\((f\circ f\circ f)(13)=f(3)=2\).</div>
+<div class="step">합 \(6+3+2=11\).</div>`,
+  v:{ q:R`자연수 \(n\)에 대하여 \(f(n)\)을 \(n\)의 양의 약수의 개수라 하자. \(f(12)+(f\circ f)(12)+(f\circ f\circ f)(12)\)의 값은?`, ch:['9','11','12','13','15'], a:3, hint:R`12의 약수는 6개.`,
+      sol:R`<div class="step">\(f(12)=6\), \(f(6)=4\), \(f(4)=3\). 합 13.</div>` } },
+
+{ id:'1131', tag:'합성함수에서 함숫값 찾기', c:'c1', t:80, src:'유형 해결의 법칙 공통수학2 p.157, 1131번 (STEP 3 내신 마스터)',
+  q:R`두 함수 \(g, h\)가 \(g(x)=\dfrac{x+2}{5}\), \(h(x)=3x+6\)일 때, \((f\circ g)(x)=h(x)\)를 만족시키는 함수 \(f(x)\)에 대하여 \(f(-1)\)의 값은?`,
+  ch:['−15','−12','−9','−6','−3'], a:0,
+  hint:R`\(g(x)=-1\) 이 되는 \(x\)를 찾으세요.`,
+  sol:R`<div class="step">\(f(g(x))=3x+6\). \(g(x)=-1\) 이 되는 \(x\): \(\dfrac{x+2}{5}=-1\) → \(x=-7\).</div>
+<div class="step">\(f(-1)=f(g(-7))=h(-7)=-21+6=-15\).</div>
+<div class="tip"><b>다른 풀이</b>\(t=\dfrac{x+2}{5}\)로 치환하면 \(x=5t-2\), \(f(t)=15t\). \(f(-1)=-15\).</div>`,
+  v:{ q:R`\(g(x)=\dfrac{x-1}{3}\), \(h(x)=2x+5\)일 때, \((f\circ g)(x)=h(x)\)를 만족시키는 \(f\)에 대하여 \(f(2)\)의 값은?`, ch:['9','13','17','19','21'], a:3, hint:R`\(g(x)=2\).`,
+      sol:R`<div class="step">\(\dfrac{x-1}{3}=2\) → \(x=7\). \(f(2)=h(7)=19\).</div>` } },
+
+{ id:'1133', tag:'합성함수의 역함수', c:'c3', t:120, src:'유형 해결의 법칙 공통수학2 p.157, 1133번 (STEP 3 내신 마스터)',
+  q:R`두 함수 \(f(x)=ax+b,\ g(x)=x+c\)에 대하여 \((f\circ g)^{-1}(3x-1)=x\), \(f^{-1}(2)=-1\)일 때, \(a+2b+3c\)의 값은? (단, \(a, b, c\)는 상수)`,
+  ch:['3','5','7','9','11'], a:2,
+  hint:R`\((f\circ g)^{-1}(A)=x\) ⟺ \((f\circ g)(x)=A\).`,
+  sol:R`<div class="step">\((f\circ g)(x)=3x-1\). 그런데 \(f(g(x))=a(x+c)+b=ax+ac+b\).</div>
+<div class="step">계수 비교: \(a=3\), \(3c+b=-1\).</div>
+<div class="step">\(f^{-1}(2)=-1\) ⟺ \(f(-1)=2\): \(-3+b=2\) → \(b=5\), 그래서 \(c=-2\).</div>
+<div class="step">\(a+2b+3c=3+10-6=7\).</div>`,
+  v:{ q:R`\(f(x)=ax+b,\ g(x)=x+c\)에 대하여 \((f\circ g)^{-1}(2x+3)=x\), \(f^{-1}(1)=2\)일 때, \(a+b+c\)의 값은?`, ch:['0','1','2','3','4'], a:2, hint:R`\(f(2)=1\).`,
+      sol:R`<div class="step">\(ax+ac+b=2x+3\) → \(a=2\), \(2c+b=3\).</div><div class="step">\(f(2)=4+b=1\) → \(b=-3\), \(c=3\). 합 2.</div>` } },
+
+{ id:'1134', tag:'역함수의 값', c:'c3', t:90, src:'유형 해결의 법칙 공통수학2 p.157, 1134번 (STEP 3 내신 마스터)',
+  q:R`두 함수 \(f(x)=3x^2+2\ (x\ge0)\), \(g(x)=x-3\)에 대하여 \((g\circ f)^{-1}(2)+(f^{-1}\circ g^{-1})(2)\)의 값은?`,
+  ch:['2','3','4','5','6'], a:0,
+  hint:R`\((g\circ f)^{-1}=f^{-1}\circ g^{-1}\). 두 항은 사실 같아요.`,
+  sol:R`<div class="step">\((g\circ f)^{-1}=f^{-1}\circ g^{-1}\) 이므로 두 항이 같아요.</div>
+<div class="step">\(g^{-1}(2)=k\) ⟺ \(g(k)=2\) → \(k=5\).</div>
+<div class="step">\(f^{-1}(5)=m\) ⟺ \(3m^2+2=5\), \(m\ge0\) → \(m=1\).</div>
+<div class="step">\(1+1=2\).</div>`,
+  v:{ q:R`\(f(x)=2x^2-1\ (x\ge0)\), \(g(x)=x+4\)에 대하여 \((g\circ f)^{-1}(11)+(f^{-1}\circ g^{-1})(11)\)의 값은?`, ch:['2','3','4','5','6'], a:2, hint:R`\(g^{-1}(11)=7\).`,
+      sol:R`<div class="step">\(g^{-1}(11)=7\), \(2m^2-1=7\) → \(m=2\). 두 항 모두 2, 합 4.</div>` } },
+
+{ id:'1135', tag:'역함수와 그래프가 일치', c:'c4', t:80, src:'유형 해결의 법칙 공통수학2 p.157, 1135번 (STEP 3 내신 마스터)',
+  q:R`점 \((-1,3)\)을 지나는 일차함수 \(y=f(x)\)의 그래프와 \(y=f^{-1}(x)\)의 그래프가 일치할 때, \(f(2)\)의 값은?`,
+  ch:['−2','−1','0','1','2'], a:2,
+  hint:R`자기 자신이 역함수인 일차함수는 \(y=x\) 또는 기울기 \(-1\).`,
+  sol:R`<div class="step">\(f=f^{-1}\)인 일차함수는 \(y=x\) 또는 \(y=-x+k\).</div>
+<div class="step">\(y=x\)는 \((-1,3)\)을 안 지나요. \(y=-x+k\)에 대입: \(3=1+k\) → \(k=2\).</div>
+<div class="step">\(f(x)=-x+2\), \(f(2)=0\).</div>
+<div class="tip"><b>확인</b>\(f(x)=ax+b\)의 역함수 \(\dfrac{x-b}{a}\)와 비교: \(a=\dfrac1a\), \(b=-\dfrac ba\) → \(a=-1\) (또는 \(a=1,\ b=0\)).</div>`,
+  v:{ q:R`점 \((2,-1)\)을 지나는 일차함수 \(y=f(x)\)의 그래프와 \(y=f^{-1}(x)\)의 그래프가 일치할 때, \(f(5)\)의 값은?`, ch:['−4','−3','−2','3','4'], a:0, hint:R`\(y=-x+k\).`,
+      sol:R`<div class="step">\(-1=-2+k\) → \(k=1\), \(f(5)=-4\).</div>` } },
+
+{ id:'1137', tag:'함수와 역함수의 교점', c:'c4', t:150, src:'유형 해결의 법칙 공통수학2 p.157, 1137번 (STEP 3 내신 마스터)',
+  q:R`함수 \(f(x)=x^2-2x+k\ (x\ge1)\)의 그래프와 그 역함수 \(y=f^{-1}(x)\)의 그래프가 서로 다른 두 점에서 만나도록 하는 정수 \(k\)의 개수는?`,
+  ch:['1','2','3','4','5'], a:0,
+  hint:R`\(x\ge1\)에서 증가함수 → 교점은 \(y=x\) 위. \(x^2-3x+k=0\)이 \(x\ge1\)에서 서로 다른 두 근.`,
+  sol:R`<div class="step">\(x\ge1\)에서 \(f\)는 증가하므로 교점은 \(f(x)=x\)의 해: \(x^2-3x+k=0\)이 \(x\ge1\)인 서로 다른 두 실근을 가져야 해요.</div>
+<figure><svg class="fig" viewBox="0 0 230 200" width="230"><line x1="10" y1="190" x2="225" y2="190" class="ax"/><line x1="30" y1="198" x2="30" y2="5" class="ax"/>
+<line x1="30" y1="190" x2="212" y2="8" class="ds"/><text x="190" y="22">y=x</text>
+<polyline points="70,150 90,140 110,110 130,60 142,20.4" class="c1"/><polyline points="70,150 80,130 110,110 160,90 199.6,78" class="c2"/>
+<circle cx="70" cy="150" r="4" class="dot"/><circle cx="110" cy="110" r="4" class="dot"/><text x="146" y="30" class="tb">y=f(x)</text><text x="168" y="104" class="tb">y=f⁻¹(x)</text></svg><figcaption>k=2일 때: 교점 (1, 1), (2, 2)</figcaption></figure>
+<div class="step">\(g(x)=x^2-3x+k\)라 하면 ① 판별식 \(9-4k>0\) → \(k<\dfrac94\) ② 축 \(x=\dfrac32\ge1\) ✔ ③ \(g(1)=k-2\ge0\) → \(k\ge2\).</div>
+<div class="step">\(2\le k<\dfrac94\), 정수는 \(k=2\) 하나.</div>
+<div class="key"><b>쓴 개념</b>근의 분리 (판별식, 축, 경계값) + 증가함수의 역함수 교점</div>`,
+  v:{ q:R`함수 \(f(x)=x^2-4x+k\ (x\ge2)\)의 그래프와 그 역함수의 그래프가 서로 다른 두 점에서 만나도록 하는 정수 \(k\)의 개수는?`, ch:['1','2','3','4','5'], a:0, hint:R`\(x^2-5x+k=0\)의 두 근이 2 이상.`,
+      sol:R`<div class="step">\(D=25-4k>0\) → \(k<\dfrac{25}{4}\). 축 \(\dfrac52\ge2\). \(g(2)=k-6\ge0\) → \(k\ge6\). 정수 \(k=6\), 1개.</div>` } },
+],
+sheet:[
+ ['합성', R`\((f\circ g)(x)=f(g(x))\), 교환 X, 결합 O`],
+ ['역함수', R`\(f(a)=b\) ⟺ \(f^{-1}(b)=a\), \((f\circ g)^{-1}=g^{-1}\circ f^{-1}\)`],
+ ['그래프', R`\(y=x\) 대칭, 증가함수의 교점은 \(f(x)=x\)`],
+]
+});
+
+/* ===== 5. 유리함수 ===== */
+UNITS.push({
+id:'rat', name:'유리함수',
+concepts:[
+{ id:'c1', title:'유리식 계산과 부분분수', body: R`
+<p>유리식의 덧셈·뺄셈은 통분, 곱셈·나눗셈은 인수분해 후 약분.</p>
+<div class="key"><b>부분분수</b>\[\frac{1}{AB}=\frac{1}{B-A}\left(\frac1A-\frac1B\right)\]단, \(A\ne B\)</div>
+<p>예) \(\dfrac1{x(x+2)}=\dfrac12\left(\dfrac1x-\dfrac1{x+2}\right)\). 여러 개를 더하면 가운데가 다 지워지고 처음과 끝만 남아요(망원).</p>
+<div class="tip"><b>항등식의 미정계수</b>\(\dfrac ax+\dfrac b{x-1}+\dfrac c{x-2}=\dfrac{4}{x(x-1)(x-2)}\) 꼴은 양변에 분모를 곱한 뒤 \(x=0,1,2\)를 대입하면 바로 나와요.</div>`},
+{ id:'c2', title:'y = k/(x−p) + q 의 그래프', body: R`
+${FIG.rational}
+<ul><li>점근선: \(x=p\), \(y=q\)</li><li>정의역 \(\{x\mid x\ne p\}\), 치역 \(\{y\mid y\ne q\}\)</li><li>\(k>0\): 1, 3사분면 방향 / \(k<0\): 2, 4사분면 방향</li><li>\(|k|\)가 클수록 점근선 교점에서 멀어짐</li></ul>
+<div class="key"><b>대칭</b>점 \((p,q)\)에 대해 점대칭. 직선 \(y=(x-p)+q\), \(y=-(x-p)+q\)에 대해 선대칭.</div>
+<div class="tip"><b>대칭축 문제</b>‘직선 \(y=x-1\)에 대하여 대칭’ → 점근선의 교점 \((p,q)\)가 그 직선 위에 있다.</div>`},
+{ id:'c3', title:'y = (ax+b)/(cx+d) 의 변형과 치역', body: R`
+<p>분자를 분모로 나눠 \(y=\dfrac{k}{x-p}+q\) 꼴로 바꿔요.</p>
+<p>예) \(\dfrac{5x-6}{x-2}=\dfrac{5(x-2)+4}{x-2}=5+\dfrac4{x-2}\).</p>
+<div class="key"><b>바로 보기</b>점근선 \(x=-\dfrac dc\), \(y=\dfrac ac\).</div>
+<p><b>정의역이 구간으로 제한</b>되면, 그 구간이 점근선 한쪽에 있을 때 그래프가 계속 증가하거나 감소해요. 그래서 양 끝값만 넣으면 치역이 나와요.</p>`},
+{ id:'c4', title:'평행이동, 역함수', body: R`
+<p>\(y=\dfrac kx\)를 \(x\)축 방향 \(p\), \(y\)축 방향 \(q\)만큼 평행이동 → \(y=\dfrac{k}{x-p}+q\). 점근선 교점이 \((0,0)\)에서 \((p,q)\)로 이동.</p>
+<div class="key"><b>역함수 공식</b>\(y=\dfrac{ax+b}{cx+d}\) 의 역함수는 \(y=\dfrac{-dx+b}{cx-a}\) (\(a\)와 \(-d\) 자리 바꾸기)</div>
+<div class="tip"><b>평행이동 연결 문제</b>원·점 등 다른 도형의 이동으로 평행이동 양을 정해 주는 문제가 많아요. 먼저 ‘얼마만큼 이동했는지’를 구하세요.</div>`},
+],
+checks:[
+{ c:'c2', q:R`함수 \(y=\dfrac{3}{x-2}+1\)의 그래프의 점근선은?`, ch:[R`\(x=-2,\ y=1\)`, R`\(x=2,\ y=1\)`, R`\(x=2,\ y=3\)`, R`\(x=1,\ y=2\)`], a:1,
+  deep:R`<p>\(x=2\), \(y=1\). 정의역 \(x\ne2\), 치역 \(y\ne1\).</p><p>심화: 이 그래프는 점 \((2,1)\)을 지나는 기울기 ±1인 두 직선 \(y=x-1\), \(y=-x+3\)에 대해 대칭이에요. ‘그래프가 직선 \(y=-x+m\)에 대칭일 때 \(m\)’ 문제는 \((2,1)\)을 대입하면 \(m=3\).</p>`,
+  review:R`<p>\(y=\dfrac{k}{x-p}+q\)에서 점근선은 \(x=p\), \(y=q\). 분모가 0이 되는 \(x=2\)가 세로 점근선이에요.</p>` },
+{ c:'c3', q:R`함수 \(y=\dfrac{2x+1}{x-1}\)의 그래프의 점근선의 교점은?`, ch:[R`\((1,2)\)`, R`\((-1,2)\)`, R`\((2,1)\)`, R`\((1,-1)\)`], a:0,
+  deep:R`<p>\(\dfrac{2(x-1)+3}{x-1}=2+\dfrac{3}{x-1}\) → 교점 \((1,2)\).</p><p>심화: 역함수 공식으로 \(y=\dfrac{x+1}{x-2}\). 역함수의 점근선 교점은 \((2,1)\), 원래 교점 \((1,2)\)를 \(y=x\)에 대칭한 점이죠.</p>`,
+  review:R`<p>분자를 분모로 나눠요: \(2x+1=2(x-1)+3\). 그래서 \(y=2+\dfrac{3}{x-1}\), 점근선 \(x=1\), \(y=2\).</p><p>빠르게: \(x=-\dfrac dc=1\), \(y=\dfrac ac=2\).</p>` },
+],
+problems:[
+{ id:'1269', tag:'부분분수 (항등식)', c:'c1', t:120, src:'유형 해결의 법칙 공통수학2 p.176, 1269번 (STEP 3 내신 마스터)',
+  q:R`다음 식의 분모를 0으로 만들지 않는 모든 실수 \(x\)에 대하여 \(\dfrac ax+\dfrac{b}{x-1}+\dfrac{c}{x-2}=\dfrac{4}{x(x-1)(x-2)}\)가 성립할 때, \(\dfrac{ac}{b}\)의 값은? (단, \(a, b, c\)는 상수)`,
+  ch:['−2','−1','0','1','2'], a:1,
+  hint:R`양변에 \(x(x-1)(x-2)\)를 곱하고 \(x=0, 1, 2\) 대입.`,
+  sol:R`<div class="step">양변에 \(x(x-1)(x-2)\)를 곱하면 \(a(x-1)(x-2)+bx(x-2)+cx(x-1)=4\).</div>
+<div class="step">\(x=0\): \(2a=4\) → \(a=2\). \(x=1\): \(-b=4\) → \(b=-4\). \(x=2\): \(2c=4\) → \(c=2\).</div>
+<div class="step">\(\dfrac{ac}{b}=\dfrac{4}{-4}=-1\).</div>
+<div class="tip"><b>왜 대입해도 되나</b>곱한 뒤의 식은 다항식 항등식이라 모든 \(x\)에서 성립해요.</div>`,
+  v:{ q:R`\(\dfrac{a}{x-1}+\dfrac{b}{x+1}+\dfrac{c}{x+3}=\dfrac{8}{(x-1)(x+1)(x+3)}\)이 항등식일 때 \(\dfrac{ac}{b}\)의 값은?`, ch:['−2','−1',R`\(-\dfrac12\)`,R`\(\dfrac12\)`,'1'], a:2, hint:R`\(x=1,\ -1,\ -3\) 대입.`,
+      sol:R`<div class="step">\(x=1\): \(8a=8\), \(a=1\). \(x=-1\): \(-4b=8\), \(b=-2\). \(x=-3\): \(8c=8\), \(c=1\).</div><div class="step">\(\dfrac{ac}{b}=-\dfrac12\).</div>` } },
+
+{ id:'1270', tag:'부분분수 (망원 합)', c:'c1', t:100, src:'유형 해결의 법칙 공통수학2 p.176, 1270번 (STEP 3 내신 마스터)',
+  q:R`\(f(x)=\dfrac{1}{x(x+2)}+\dfrac{1}{(x+2)(x+4)}+\cdots+\dfrac{1}{(x+96)(x+98)}+\dfrac{1}{(x+98)(x+100)}\)에 대하여 \(f(1)\)의 값은?`,
+  ch:[R`\(\dfrac1{101}\)`, R`\(\dfrac{49}{101}\)`, R`\(\dfrac{50}{101}\)`, R`\(\dfrac{99}{101}\)`, R`\(\dfrac{100}{101}\)`], a:2,
+  hint:R`분모 차이가 모두 2.`,
+  sol:R`<div class="step">각 항 \(\dfrac{1}{A(A+2)}=\dfrac12\left(\dfrac1A-\dfrac1{A+2}\right)\).</div>
+<div class="step">더하면 가운데가 지워져서 \(f(x)=\dfrac12\left(\dfrac1x-\dfrac1{x+100}\right)\).</div>
+<div class="step">\(f(1)=\dfrac12\left(1-\dfrac1{101}\right)=\dfrac12\cdot\dfrac{100}{101}=\dfrac{50}{101}\).</div>
+<div class="warn"><b>자주 틀림</b>앞의 \(\dfrac12\)을 빼먹으면 ⑤를 고르게 돼요.</div>`,
+  v:{ q:R`\(f(x)=\dfrac1{x(x+1)}+\dfrac1{(x+1)(x+2)}+\cdots+\dfrac1{(x+9)(x+10)}\)일 때 \(f(1)\)의 값은?`, ch:[R`\(\dfrac9{11}\)`,R`\(\dfrac{10}{11}\)`,'1',R`\(\dfrac{11}{10}\)`,R`\(\dfrac9{10}\)`], a:1, hint:R`분모 차이 1.`,
+      sol:R`<div class="step">\(f(x)=\dfrac1x-\dfrac1{x+10}\), \(f(1)=1-\dfrac1{11}=\dfrac{10}{11}\).</div>` } },
+
+{ id:'1272', tag:'유리함수의 평행이동', c:'c4', t:120, src:'유형 해결의 법칙 공통수학2 p.176, 1272번 (STEP 3 내신 마스터)',
+  q:R`원 \((x-2)^2+(y+1)^2=9\)가 점 \((4,2)\)를 중심으로 하는 원으로 옮겨지는 평행이동에 의하여 함수 \(y=\dfrac{2}{x-1}\)의 그래프를 평행이동하면 \(y=\dfrac{ax+b}{x+c}\)의 그래프와 겹쳐진다. 이때 상수 \(a, b, c\)에 대하여 \(abc\)의 값은?`,
+  ch:['35','56','63','70','91'], a:2,
+  hint:R`원의 중심 \((2,-1)\) → \((4,2)\). 이동량부터.`,
+  sol:R`<div class="step">중심 \((2,-1)\to(4,2)\): \(x\)축 방향 2, \(y\)축 방향 3만큼 이동.</div>
+<div class="step">\(y=\dfrac{2}{x-1}\) → \(y=\dfrac{2}{(x-2)-1}+3=\dfrac{2}{x-3}+3\).</div>
+<div class="step">통분: \(\dfrac{3(x-3)+2}{x-3}=\dfrac{3x-7}{x-3}\). \(a=3,\ b=-7,\ c=-3\).</div>
+<div class="step">\(abc=3\times(-7)\times(-3)=63\).</div>`,
+  v:{ q:R`원 \((x+1)^2+(y-3)^2=4\)가 점 \((2,1)\)을 중심으로 하는 원으로 옮겨지는 평행이동에 의하여 \(y=\dfrac{3}{x+2}\)의 그래프를 옮기면 \(y=\dfrac{ax+b}{x+c}\)와 겹쳐진다. \(abc\)의 값은?`, ch:['−4','−2','2','4','6'], a:1, hint:R`이동량 (3, −2).`,
+      sol:R`<div class="step">\((-1,3)\to(2,1)\): \((3,-2)\) 이동. \(y=\dfrac{3}{x+1}-2=\dfrac{-2x+1}{x+1}\).</div><div class="step">\(a=-2,\ b=1,\ c=1\), \(abc=-2\).</div>` } },
+
+{ id:'1273', tag:'제한된 정의역의 치역', c:'c3', t:100, src:'유형 해결의 법칙 공통수학2 p.176, 1273번 (STEP 3 내신 마스터)',
+  q:R`함수 \(y=\dfrac{5x-6}{x-2}\)의 정의역이 \(\{x\mid-2\le x\le1\}\)일 때, 치역에 속하는 모든 정수의 합은?`,
+  ch:['0','1','3','6','10'], a:4,
+  hint:R`\(5+\dfrac{4}{x-2}\) 로 바꾸고 양 끝 대입.`,
+  sol:R`<div class="step">\(y=5+\dfrac{4}{x-2}\). 정의역 \([-2,1]\)은 점근선 \(x=2\)의 왼쪽이라 그 위에서 계속 감소해요.</div>
+<figure><svg class="fig" viewBox="0 0 230 190" width="230"><line x1="10" y1="180" x2="225" y2="180" class="ax"/><line x1="110" y1="185" x2="110" y2="5" class="ax"/>
+<line x1="160" y1="5" x2="160" y2="185" class="ds"/><line x1="10" y1="55" x2="225" y2="55" class="ds"/>
+<polyline points="60,80 85,88.3 110,105 122.5,121.7 135,155" class="c1"/><circle cx="60" cy="80" r="4" class="dot"/><circle cx="135" cy="155" r="4" class="dot"/>
+<line x1="104" y1="80" x2="104" y2="155" class="c3" stroke-width="4"/>
+<text x="98" y="84" text-anchor="end">4</text><text x="98" y="159" text-anchor="end">1</text><text x="164" y="16">x=2</text><text x="190" y="50">y=5</text><text x="60" y="194" text-anchor="middle">−2</text><text x="135" y="194" text-anchor="middle">1</text></svg></figure>
+<div class="step">\(x=-2\): \(5-1=4\), \(x=1\): \(5-4=1\). 치역 \(1\le y\le4\).</div>
+<div class="step">정수 1, 2, 3, 4의 합 10.</div>`,
+  v:{ q:R`함수 \(y=\dfrac{2x+1}{x-1}\)의 정의역이 \(\{x\mid2\le x\le4\}\)일 때, 치역에 속하는 모든 정수의 합은?`, ch:['7','9','12','14','15'], a:2, hint:R`\(2+\dfrac3{x-1}\).`,
+      sol:R`<div class="step">\(x=2\): 5, \(x=4\): 3. 치역 \([3,5]\), 정수 합 \(3+4+5=12\).</div>` } },
+
+{ id:'1274', tag:'점근선', c:'c3', t:60, src:'유형 해결의 법칙 공통수학2 p.176, 1274번 (STEP 3 내신 마스터)',
+  q:R`함수 \(y=\dfrac{ax-2}{x+b}\)의 그래프가 두 직선 \(x=1,\ y=-2\)와 만나지 않을 때, 상수 \(a, b\)에 대하여 \(a+b\)의 값은?`,
+  ch:['−3','−2','−1','0','1'], a:0,
+  hint:R`만나지 않는 직선 = 점근선.`,
+  sol:R`<div class="step">두 직선이 점근선이에요. 세로 점근선 \(x=-b=1\) → \(b=-1\). 가로 점근선 \(y=a=-2\).</div>
+<div class="step">\(a+b=-3\).</div>
+<div class="warn"><b>확인</b>분자가 분모의 배수가 되면 상수함수가 되어 점근선이 없어요. \(\dfrac{-2x-2}{x-1}\)은 상수가 아니니 OK.</div>`,
+  v:{ q:R`함수 \(y=\dfrac{ax+3}{x+b}\)의 그래프가 두 직선 \(x=-2,\ y=4\)와 만나지 않을 때 \(a+b\)의 값은?`, ch:['2','4','6','8','−2'], a:2, hint:R`\(x=-b\), \(y=a\).`,
+      sol:R`<div class="step">\(-b=-2\) → \(b=2\), \(a=4\). 합 6.</div>` } },
+
+{ id:'1275', tag:'유리함수의 대칭', c:'c2', t:100, src:'유형 해결의 법칙 공통수학2 p.176, 1275번 (STEP 3 내신 마스터)',
+  q:R`함수 \(y=f(x)\)의 그래프는 함수 \(y=-\dfrac1x\)의 그래프를 평행이동한 것이고, 직선 \(y=x-1\)에 대하여 대칭이다. 함수 \(f(x)\)의 정의역이 \(\{x\mid x\ne3인\ 실수\}\)일 때, \(f(2)\)의 값은?`,
+  ch:['1','2','3','4','5'], a:2,
+  hint:R`점근선 교점 \((3, q)\)가 직선 \(y=x-1\) 위에 있어요.`,
+  sol:R`<div class="step">\(f(x)=-\dfrac{1}{x-p}+q\), 정의역에서 \(p=3\).</div>
+<div class="step">대칭축 \(y=x-1\)은 점근선 교점 \((3,q)\)를 지나요: \(q=3-1=2\).</div>
+<div class="step">\(f(x)=-\dfrac1{x-3}+2\), \(f(2)=1+2=3\).</div>`,
+  v:{ q:R`\(y=f(x)\)의 그래프는 \(y=\dfrac2x\)의 그래프를 평행이동한 것이고, 직선 \(y=-x+3\)에 대하여 대칭이다. \(f(x)\)의 정의역이 \(\{x\mid x\ne1인\ 실수\}\)일 때, \(f(2)\)의 값은?`, ch:['2','3','4','5','6'], a:2, hint:R`\(q=-1+3\).`,
+      sol:R`<div class="step">\(p=1\), \(q=-1+3=2\). \(f(x)=\dfrac2{x-1}+2\), \(f(2)=4\).</div>` } },
+],
+sheet:[
+ ['부분분수', R`\(\dfrac1{AB}=\dfrac1{B-A}\left(\dfrac1A-\dfrac1B\right)\)`],
+ ['그래프', R`\(y=\dfrac{k}{x-p}+q\): 점근선 \(x=p,\ y=q\), 점 \((p,q)\) 대칭`],
+ ['점근선 바로', R`\(y=\dfrac{ax+b}{cx+d}\): \(x=-\dfrac dc,\ y=\dfrac ac\)`],
+ ['역함수', R`\(\dfrac{ax+b}{cx+d}\) ↔ \(\dfrac{-dx+b}{cx-a}\)`],
+]
+});
+
+/* ===== 6. 무리함수 ===== */
+UNITS.push({
+id:'irr', name:'무리함수',
+concepts:[
+{ id:'c1', title:'무리식의 조건과 계산', body: R`
+<div class="key"><b>값이 실수일 조건</b>근호 안 \(\ge0\), 분모 \(\ne0\).</div>
+<p>분모의 유리화:</p>\[\frac{1}{\sqrt a+\sqrt b}=\frac{\sqrt a-\sqrt b}{a-b}\]
+<div class="warn"><b>음수의 제곱근</b>\(\sqrt a\sqrt b=-\sqrt{ab}\) 이면 \(a<0,\ b<0\) (또는 둘 중 하나가 0).<br>\(\dfrac{\sqrt a}{\sqrt b}=-\sqrt{\dfrac ab}\) 이면 \(a>0,\ b<0\) (또는 \(a=0,\ b\ne0\)).</div>
+<p>\(\sqrt{x^2}=|x|\). 절댓값은 범위를 알아야 풀 수 있어요.</p>
+<div class="tip"><b>망원 합</b>\[\frac{1}{\sqrt{n+1}+\sqrt n}=\sqrt{n+1}-\sqrt n\]여러 개 더하면 처음과 끝만 남아요.</div>`},
+{ id:'c2', title:'y = √(a(x−p)) + q 의 그래프', body: R`
+${FIG.sqrt4}
+<div class="key"><b>읽는 법</b>시작점 \((p,q)\). \(a>0\)이면 오른쪽으로, \(a<0\)이면 왼쪽으로. 근호 앞이 \(-\)면 아래로.</div>
+<ul><li>\(y=\sqrt{a(x-p)}+q\ (a>0)\): 정의역 \(x\ge p\), 치역 \(y\ge q\)</li><li>\(y=\sqrt{a(x-p)}+q\ (a<0)\): 정의역 \(x\le p\), 치역 \(y\ge q\)</li></ul>
+<div class="warn"><b>변형 먼저</b>\(\sqrt{2x+2}\)는 \(\sqrt{2(x+1)}\). 괄호로 묶어야 시작점 \(x=-1\)이 보여요.</div>`},
+{ id:'c3', title:'평행이동과 대칭이동', body: R`
+<ul><li>평행이동 \((m,n)\): \(x\to x-m\), \(y\to y-n\)</li><li>\(x\)축 대칭: \(y\to-y\) (근호 앞 부호가 바뀜)</li><li>\(y\)축 대칭: \(x\to-x\) (근호 안 부호가 바뀜)</li><li>원점 대칭: 둘 다</li></ul>
+<div class="tip"><b>순서 주의</b>‘대칭이동 후 평행이동’과 ‘평행이동 후 대칭이동’은 결과가 달라요. 문제에 적힌 순서대로 식에 하나씩 적용하세요.</div>
+<div class="tip"><b>넓이 문제</b>모양이 같은 무리함수 그래프 두 개 사이 넓이는, 잘라서 옮겨 붙이면 직사각형이 되는 경우가 많아요.</div>`},
+{ id:'c4', title:'역함수와 교점', body: R`
+<p>\(y=\sqrt{x-p}+q\)의 역함수: \(x-p=(y-q)^2\) → \(y=(x-q)^2+p\ (x\ge q)\). 이차함수의 일부가 돼요.</p>
+<div class="key"><b>직선과 만나는 점의 개수</b>직선을 평행이동하며 ① 시작점을 지날 때 ② 접할 때(판별식 \(D=0\))가 경계.</div>
+<p>사분면 문제: 시작점의 위치와 뻗는 방향만 보면 지나는 사분면이 정해져요.</p>`},
+],
+checks:[
+{ c:'c2', q:R`함수 \(y=\sqrt{-2(x-1)}+3\)의 정의역과 치역은?`, ch:[R`\(x\ge1,\ y\ge3\)`, R`\(x\le1,\ y\ge3\)`, R`\(x\le1,\ y\le3\)`, R`\(x\ge-1,\ y\ge3\)`], a:1,
+  deep:R`<p>근호 안 \(-2(x-1)\ge0\) → \(x\le1\). 근호 앞이 \(+\)라 \(y\ge3\). 시작점 \((1,3)\)에서 왼쪽 위로 뻗어요.</p><p>심화: 이 그래프가 지나는 사분면은 1, 2사분면. 시작점 \((1,3)\)이 1사분면이고 왼쪽 위로 가며 \(y\)축을 넘어 2사분면으로 들어가요.</p>`,
+  review:R`<p>정의역은 근호 안이 0 이상인 범위. \(-2(x-1)\ge0\) 양변을 \(-2\)로 나누면 부등호 방향이 바뀌어 \(x-1\le0\).</p><p>치역은 \(\sqrt{\ }\ge0\) 이므로 \(+3\)을 해서 \(y\ge3\).</p>` },
+{ c:'c1', q:R`\(\sqrt{-8}\times\sqrt{-2}\)의 값은?`, ch:['4','−4',R`\(4i\)`,'16'], a:1,
+  deep:R`<p>\(\sqrt{-8}=2\sqrt2 i\), \(\sqrt{-2}=\sqrt2 i\). 곱은 \(4i^2=-4\).</p><p>심화: 그래서 ‘\(\sqrt a\sqrt b=-\sqrt{ab}\)를 만족’이라는 조건은 \(a<0,\ b<0\)을 뜻해요. 1405번처럼 이 조건에서 \(x\)의 범위를 구한 뒤 절댓값을 푸는 문제로 자주 나와요.</p>`,
+  review:R`<p>음수끼리는 \(\sqrt a\sqrt b=\sqrt{ab}\)가 성립하지 않아요. \(i\)로 바꿔서 계산하세요: \(\sqrt{-8}\sqrt{-2}=(2\sqrt2i)(\sqrt2 i)=4i^2=-4\).</p>` },
+],
+problems:[
+{ id:'1404', tag:'무리식이 실수일 조건', c:'c1', t:70, src:'유형 해결의 법칙 공통수학2 p.194, 1404번 (STEP 3 내신 마스터)',
+  q:R`\(\sqrt{-2x^2+3x+5}\)의 값이 실수가 되도록 하는 모든 정수 \(x\)의 값의 합은?`,
+  ch:['−3','0','2','3','6'], a:2,
+  hint:R`근호 안 \(\ge0\).`,
+  sol:R`<div class="step">\(-2x^2+3x+5\ge0\) → \(2x^2-3x-5\le0\) → \((2x-5)(x+1)\le0\).</div>
+<div class="step">\(-1\le x\le\dfrac52\). 정수 \(-1,0,1,2\), 합 2.</div>`,
+  v:{ q:R`\(\sqrt{-x^2+2x+8}\)의 값이 실수가 되도록 하는 모든 정수 \(x\)의 값의 합은?`, ch:['3','5','7','9','10'], a:2, hint:R`\((x-4)(x+2)\le0\).`,
+      sol:R`<div class="step">\(-2\le x\le4\), 정수 합 \(-2-1+0+1+2+3+4=7\).</div>` } },
+
+{ id:'1405', tag:'음수의 제곱근 성질', c:'c1', t:100, src:'유형 해결의 법칙 공통수학2 p.194, 1405번 (STEP 3 내신 마스터)',
+  q:R`\(\dfrac{\sqrt{x+2}}{\sqrt{x^2-9}}=-\sqrt{\dfrac{x+2}{x^2-9}}\)를 만족시키는 실수 \(x\)에 대하여 \(\sqrt{(x+4)^2}+\sqrt{(x-5)^2}\)을 간단히 하면?`,
+  ch:['−9','−1','9',R`\(-2x+1\)`,R`\(2x-1\)`], a:2,
+  hint:R`\(\dfrac{\sqrt a}{\sqrt b}=-\sqrt{\dfrac ab}\) 이면 \(a\ge0,\ b<0\).`,
+  sol:R`<div class="step">조건에서 \(x+2\ge0\), \(x^2-9<0\) → \(-2\le x<3\).</div>
+<div class="step">이 범위에서 \(x+4>0\), \(x-5<0\).</div>
+<div class="step">\(|x+4|+|x-5|=(x+4)+(5-x)=9\).</div>`,
+  v:{ q:R`\(\dfrac{\sqrt{x-1}}{\sqrt{x-4}}=-\sqrt{\dfrac{x-1}{x-4}}\)를 만족시키는 실수 \(x\)에 대하여 \(\sqrt{(x+1)^2}+\sqrt{(x-5)^2}\)을 간단히 하면?`, ch:['−6',R`\(2x-4\)`,'4','6',R`\(2x+6\)`], a:3, hint:R`\(x-1\ge0,\ x-4<0\).`,
+      sol:R`<div class="step">\(1\le x<4\). \((x+1)+(5-x)=6\).</div>` } },
+
+{ id:'1406', tag:'분모의 유리화 (망원 합)', c:'c1', t:90, src:'유형 해결의 법칙 공통수학2 p.194, 1406번 (STEP 3 내신 마스터)',
+  q:R`자연수 \(n\)에 대하여 \(f(n)=\sqrt{2n+1}+\sqrt{2n-1}\)일 때, \(\dfrac1{f(1)}+\dfrac1{f(2)}+\dfrac1{f(3)}+\cdots+\dfrac1{f(24)}\)의 값은?`,
+  ch:['1','2','3','4','5'], a:2,
+  hint:R`\(\dfrac{1}{f(n)}\)을 유리화하면 \(\dfrac{\sqrt{2n+1}-\sqrt{2n-1}}{2}\).`,
+  sol:R`<div class="step">\(\dfrac{1}{\sqrt{2n+1}+\sqrt{2n-1}}=\dfrac{\sqrt{2n+1}-\sqrt{2n-1}}{(2n+1)-(2n-1)}=\dfrac{\sqrt{2n+1}-\sqrt{2n-1}}{2}\)</div>
+<div class="step">합: \(\dfrac12\left\{(\sqrt3-1)+(\sqrt5-\sqrt3)+\cdots+(\sqrt{49}-\sqrt{47})\right\}=\dfrac12(7-1)=3\).</div>`,
+  v:{ q:R`\(f(n)=\sqrt{n+1}+\sqrt n\)일 때, \(\dfrac1{f(1)}+\dfrac1{f(2)}+\cdots+\dfrac1{f(99)}\)의 값은?`, ch:['8','9','10','11','99'], a:1, hint:R`분모 차가 1.`,
+      sol:R`<div class="step">\(\sqrt{100}-\sqrt1=9\).</div>` } },
+
+{ id:'1409', tag:'대칭이동 + 평행이동', c:'c3', t:100, src:'유형 해결의 법칙 공통수학2 p.194, 1409번 (STEP 3 내신 마스터)',
+  q:R`함수 \(y=\sqrt{a(x-1)}+1\)의 그래프를 \(x\)축에 대하여 대칭이동한 후 \(x\)축의 방향으로 \(b\)만큼, \(y\)축의 방향으로 \(c\)만큼 평행이동한 그래프가 함수 \(y=-\sqrt{2x+2}+5\)의 그래프와 일치할 때, \(a-b+c\)의 값은? (단, \(a\)는 상수)`,
+  ch:['2','4','6','8','10'], a:4,
+  hint:R`목표 식을 \(-\sqrt{2(x+1)}+5\)로 바꿔 두세요.`,
+  sol:R`<div class="step">\(x\)축 대칭: \(y=-\sqrt{a(x-1)}-1\).</div>
+<div class="step">평행이동: \(y=-\sqrt{a(x-b-1)}-1+c\).</div>
+<div class="step">\(-\sqrt{2(x+1)}+5\)와 비교: \(a=2\), \(-b-1=1\) → \(b=-2\), \(c-1=5\) → \(c=6\).</div>
+<div class="step">\(a-b+c=2+2+6=10\).</div>`,
+  v:{ q:R`\(y=\sqrt{a(x+1)}-2\)의 그래프를 \(y\)축에 대하여 대칭이동한 후 \(x\)축 방향으로 \(b\)만큼, \(y\)축 방향으로 \(c\)만큼 평행이동한 그래프가 \(y=\sqrt{-3x+6}+1\)과 일치할 때, \(a+b+c\)의 값은?`, ch:['3','5','7','9','11'], a:2, hint:R`\(y\)축 대칭은 \(x\to-x\).`,
+      sol:R`<div class="step">\(y\)축 대칭: \(\sqrt{a(-x+1)}-2=\sqrt{-a(x-1)}-2\).</div><div class="step">이동: \(\sqrt{-a(x-b-1)}-2+c\). 목표 \(\sqrt{-3(x-2)}+1\): \(a=3\), \(b=1\), \(c=3\). 합 7.</div>` } },
+
+{ id:'1410', tag:'무리함수 그래프와 넓이', c:'c3', t:150, src:'유형 해결의 법칙 공통수학2 p.194, 1410번 (STEP 3 내신 마스터)',
+  q:R`두 함수 \(f(x)=-\sqrt{x+4}-3\), \(g(x)=-\sqrt{-x+4}+3\)의 그래프와 두 직선 \(x=-4,\ x=4\)로 둘러싸인 도형의 넓이는?`,
+  ch:['24','32','40','48','56'], a:3,
+  hint:R`직선 \(y=3\), \(y=-3\)을 그어 보세요. 잘린 두 조각의 모양이 같아요.`,
+  sol:R`<div class="step">\(f\)의 시작점 \((-4,-3)\), \(g\)의 시작점 \((4,3)\).</div>
+<figure><svg class="fig" viewBox="0 0 300 215" width="300">
+<polygon points="90,107.4 120,101.7 150,95 180,86.2 195,80 210,65 210,197.4 180,191.7 150,185 120,176.2 105,170 90,155" class="fill1"/>
+<line x1="0" y1="110" x2="300" y2="110" class="ax"/><line x1="150" y1="5" x2="150" y2="210" class="ax"/>
+<rect x="90" y="65" width="120" height="90" class="ds"/>
+<polyline points="90,155 105,170 120,176.2 150,185 180,191.7 210,197.4" class="c2"/>
+<polyline points="90,107.4 120,101.7 150,95 180,86.2 195,80 210,65" class="c1"/>
+<text x="214" y="70">y=3</text><text x="44" y="159">y=−3</text><text x="216" y="200" class="tb">f</text><text x="216" y="56" class="tb">g</text>
+<text x="90" y="125" text-anchor="middle">−4</text><text x="210" y="125" text-anchor="middle">4</text></svg>
+<figcaption>점선 직사각형: 가로 8, 세로 6</figcaption></figure>
+<div class="step">\(y=-3\)과 \(f\) 사이 조각 A는 \(y=\sqrt{x+4}\) 아래 넓이와 같고, \(y=3\)과 \(g\) 사이 조각 B는 \(y=\sqrt{4-x}\) 아래 넓이와 같아요. 이 둘은 \(y\)축 대칭이라 넓이가 같아요.</div>
+<div class="step">구하는 넓이 = 직사각형 − B + A = 직사각형 = \(8\times6=48\).</div>`,
+  v:{ q:R`두 함수 \(f(x)=\sqrt{x+2}+1\), \(g(x)=\sqrt{2-x}-3\)의 그래프와 두 직선 \(x=-2,\ x=2\)로 둘러싸인 도형의 넓이는?`, ch:['8','12','16','20','24'], a:2, hint:R`\(y=1\)과 \(y=-3\) 사이 직사각형.`,
+      sol:R`<div class="step">\(f\)는 \(y=1\) 위로 \(\sqrt{x+2}\)만큼, \(g\)는 \(y=-3\) 위로 \(\sqrt{2-x}\)만큼. 두 조각의 넓이가 같아 서로 상쇄돼요.</div><div class="step">넓이 = 가로 4 × 세로 4 = 16.</div>` } },
+
+{ id:'1411', tag:'그래프가 지나는 사분면', c:'c4', t:100, src:'유형 해결의 법칙 공통수학2 p.194, 1411번 (STEP 3 내신 마스터)',
+  q:R`정의역이 \(\{x\mid x>a\}\)인 함수 \(y=\sqrt{2x-2a}-a^2+1\)의 그래프가 오직 하나의 사분면을 지나도록 하는 실수 \(a\)의 최댓값은?`,
+  ch:['−2','−1','0','1','2'], a:3,
+  hint:R`시작점 \((a,\ 1-a^2)\)이 어디 있어야 1사분면만 지날까요?`,
+  sol:R`<div class="step">\(y=\sqrt{2(x-a)}+(1-a^2)\): 시작점 \((a,\ 1-a^2)\)에서 오른쪽 위로 뻗어요 (시작점 자체는 정의역에서 빠짐).</div>
+<div class="step">오른쪽 위로 끝없이 가니 결국 1사분면에 들어가요. 그래서 1사분면만 지나야 해요.</div>
+<div class="step">시작점이 \(x\ge0\), \(y\ge0\)에 있어야 함: \(a\ge0\), \(1-a^2\ge0\) → \(0\le a\le1\).</div>
+<div class="step">최댓값 1.</div>
+<div class="warn"><b>경계</b>\(a=1\)이면 시작점 \((1,0)\)이 \(x\)축 위지만 정의역이 \(x>1\)이라 그래프는 1사분면 안에만 있어요.</div>`,
+  v:{ q:R`정의역이 \(\{x\mid x>a\}\)인 함수 \(y=\sqrt{3x-3a}-a+2\)의 그래프가 오직 하나의 사분면을 지나도록 하는 실수 \(a\)의 최댓값은?`, ch:['−2','0','1','2','3'], a:3, hint:R`시작점 \((a,\ 2-a)\).`,
+      sol:R`<div class="step">\(a\ge0\), \(2-a\ge0\) → \(0\le a\le2\). 최댓값 2.</div>` } },
+],
+sheet:[
+ ['실수 조건', R`근호 안 \(\ge0\), 분모 \(\ne0\)`],
+ ['음수 제곱근', R`\(\sqrt a\sqrt b=-\sqrt{ab}\) → \(a<0,\ b<0\) / \(\dfrac{\sqrt a}{\sqrt b}=-\sqrt{\dfrac ab}\) → \(a\ge0,\ b<0\)`],
+ ['그래프', R`\(y=\sqrt{a(x-p)}+q\): 시작점 \((p,q)\)`],
+ ['역함수', R`\(y=\sqrt{x-p}+q\) ↔ \(y=(x-q)^2+p\ (x\ge q)\)`],
+]
+});
+
+</script>
+<script>
+/* ===== 일타 강사 스타일 개념 설명 ===== */
+const RC = (t)=>`<div class="recall"><b>📍 어디서 봤더라?</b>${t}</div>`;
+const SUM = (t)=>`<div class="sum"><b>한 줄 정리</b>${t}</div>`;
+const NEWC = {
+prop:[
+{ id:'c1', title:'명제, 조건, 진리집합', body: R`
+${RC(R`바로 앞 단원 <b>집합</b>에서 원소, 부분집합, 여집합 배웠죠? 명제 단원은 사실 그 집합 얘기를 <b>문장</b>으로 다시 하는 거예요. 집합 잘했으면 이미 반은 먹고 들어간 거예요.`)}
+<p><b>1. 명제가 뭐냐면</b></p>
+<p>참인지 거짓인지 <b>딱 잘라 말할 수 있는</b> 문장이에요.</p>
+<ul><li>‘2는 소수이다’ → 참. 명제 O</li><li>‘3 &gt; 5’ → 거짓. 그래도 명제 O (거짓도 명제예요!)</li><li>‘수학은 재밌다’ → 사람마다 달라요. 명제 X</li></ul>
+<p><b>2. 조건은 뭐냐면</b></p>
+<p>‘\(x+1=3\)’은 \(x\)가 2면 참, 아니면 거짓이죠. 이렇게 <b>\(x\) 값에 따라 참·거짓이 바뀌는</b> 문장을 조건이라고 하고, \(p\), \(q\)처럼 이름을 붙여요.</p>
+<p><b>3. 진리집합: 조건을 집합으로 번역</b></p>
+<p>조건을 참으로 만드는 애들만 모은 집합이에요. 예를 들어 \(U=\{1,2,3,4,5,6\}\)에서 \(p\): \(x\)는 짝수 → \(P=\{2,4,6\}\).</p>
+<p>이 단원은 결국 “조건 → 집합으로 바꾸고, 집합으로 판단하기”예요. 이것만 기억해도 반은 끝나요.</p>
+<p><b>4. 부정 \(\sim p\)</b></p>
+<p>‘\(p\)가 아니다’예요. 진리집합은 여집합 \(P^C\). 위 예에서 \(\sim p\): \(x\)는 홀수 → \(\{1,3,5\}\).</p>
+<div class="key"><b>‘또는’, ‘그리고’의 부정</b>집합에서 \((A\cup B)^C=A^C\cap B^C\) 배운 거 기억나요? 그거랑 똑같아요.<br>‘\(p\) 또는 \(q\)’의 부정 → ‘\(\sim p\) 그리고 \(\sim q\)’<br>‘\(p\) 그리고 \(q\)’의 부정 → ‘\(\sim p\) 또는 \(\sim q\)’</div>
+<p>예) \(x\ge1\)의 부정은 \(x<1\). 등호는 반대편으로 넘어가요.<br>\(-1<x\le2\)는 ‘\(x>-1\) 그리고 \(x\le2\)’라서 부정은 ‘\(x\le-1\) 또는 \(x>2\)’.</p>
+<div class="warn"><b>시험에 자주 나오는 함정</b>\(ab=0\)은 ‘\(a=0\) <b>또는</b> \(b=0\)’ → 부정은 ‘\(a\ne0\) 그리고 \(b\ne0\)’<br>\(a^2+b^2=0\)은 ‘\(a=0\) <b>그리고</b> \(b=0\)’ → 부정은 ‘\(a\ne0\) 또는 \(b\ne0\)’</div>
+${SUM(R`조건은 집합으로 번역한다. 부정은 여집합.`)}`},
+
+{ id:'c2', title:'명제 p → q 의 참, 거짓', body: R`
+${RC(R`중학교 도형 단원에서 ‘이등변삼각형<b>이면</b> 두 밑각의 크기가 같다’ 같은 문장 많이 썼죠? 그게 다 ‘\(p\)이면 \(q\)이다’ 꼴이에요. 이제 이걸 집합 그림으로 참·거짓을 판정해요.`)}
+<p>‘\(p\)이면 \(q\)이다’에서 \(p\)는 <b>가정</b>, \(q\)는 <b>결론</b>이에요.</p>
+<p><b>쉬운 예로 감 잡기</b></p>
+<p>‘우리 반 학생이면 김포고 학생이다’ → 우리 반은 김포고 안에 쏙 들어가죠. 참!<br>‘김포고 학생이면 우리 반 학생이다’ → 옆 반 친구는요? 거짓! 옆 반 친구가 바로 <b>반례</b>예요.</p>
+${FIG.vennSub}
+<div class="key"><b>판정법 딱 하나</b>\(P\subset Q\) 이면 참, 아니면 거짓.<br>작은 쪽에서 큰 쪽으로 가는 화살표만 참이에요.</div>
+${FIG.vennCex}
+<p>거짓이라고 말하려면 <b>반례 하나</b>만 찾으면 돼요. 반례는 가정은 만족하는데 결론은 안 만족하는 것, 즉 \(P-Q\)에 있는 원소예요.</p>
+<div class="tip"><b>반례 찾는 요령</b>제곱이 보이면 <b>음수</b>부터 넣어 보세요. (\(x^2=4\)이면 \(x=2\)? → \(x=-2\)!)<br>‘둘 다 무리수’ 같은 말엔 하나만 무리수인 경우를 넣어 보세요. (\(x=\sqrt2,\ y=0\))<br>0, 1, −1, 2 정도만 넣어 봐도 대부분 걸려요.</div>
+${SUM(R`포함되면 참, 삐져나온 게 있으면 그게 반례.`)}`},
+
+{ id:'c3', title:'‘모든’과 ‘어떤’', body: R`
+${RC(R`공통수학1 이차부등식에서 ‘모든 실수 \(x\)에 대하여 성립할 조건’ 문제 풀었죠? 그때 판별식 \(D<0\) 쓴 거, 그게 바로 이 개념이에요.`)}
+<p><b>교실로 생각해 보세요</b></p>
+<ul><li>‘우리 반 <b>모든</b> 학생은 휴대폰이 있다’ → 한 명이라도 없으면 거짓이에요.</li><li>‘우리 반 <b>어떤</b> 학생은 안경을 쓴다’ → 딱 한 명만 써도 참이에요.</li></ul>
+<div class="key"><b>집합으로 말하면</b>‘모든 \(x\)에 대하여 \(p\)’는 \(P=U\)일 때 참 (전부 다 만족)<br>‘어떤 \(x\)에 대하여 \(p\)’는 \(P\ne\varnothing\)일 때 참 (하나라도 있으면)</div>
+<p><b>부정하는 법</b>: ‘모든’ ↔ ‘어떤’을 바꾸고, 뒤의 조건도 부정해요.</p>
+<p>‘모든 학생이 휴대폰이 있다’의 부정은 ‘휴대폰이 <b>없는</b> 학생이 <b>있다</b>’, 즉 ‘어떤 학생은 휴대폰이 없다’예요. ‘모든 학생이 휴대폰이 없다’가 아니에요!</p>
+<p>수식으로: ‘모든 실수 \(x\)에 대하여 \(x^2\ge0\)’ → 부정은 ‘어떤 실수 \(x\)에 대하여 \(x^2<0\)’.</p>
+${SUM(R`모든은 전부, 어떤은 하나라도. 부정하면 서로 바뀐다.`)}`},
+
+{ id:'c4', title:'역과 대우', body: R`
+${RC(R`처음 보는 용어지만 생활에서 늘 쓰는 논리예요. 국어 시간 논증 단원에서 ‘전제가 참이면 결론도 참인가’ 따졌던 것과 같은 결이에요.`)}
+<p><b>예시 하나로 전부 이해하기</b>: ‘비가 오면 땅이 젖는다’ (참)</p>
+<ul><li><b>역</b>(앞뒤 바꾸기): ‘땅이 젖으면 비가 왔다’ → 누가 물을 뿌렸을 수도 있죠. 거짓!</li><li><b>대우</b>(앞뒤 바꾸고 둘 다 부정): ‘땅이 안 젖었으면 비가 안 왔다’ → 맞아요. 참!</li></ul>
+${FIG.contra}
+<div class="key"><b>핵심</b>원래 명제와 <b>대우</b>는 참·거짓이 항상 같다.<br>역은 그때그때 따로 확인해야 한다.</div>
+<p><b>왜 대우는 같을까?</b> 집합 그림에서 \(P\subset Q\)이면, 밖에서 보면 \(Q\) 바깥(\(Q^C\))은 \(P\) 바깥(\(P^C\)) 안에 들어가요. 그래서 \(Q^C\subset P^C\), 즉 \(\sim q\to\sim p\)도 참이에요.</p>
+<div class="tip"><b>문제에서 대우 쓰는 타이밍</b>조건에 <b>‘\(\ne\)’</b>가 보이면 대우로 바꾸세요. ‘\(\ne\)’가 ‘\(=\)’로 바뀌어서 대입만 하면 끝나요.<br>예) ‘\(x^2-ax+3\ne0\)이면 \(x-1\ne0\)’이 참<br>→ 대우: ‘\(x=1\)이면 \(x^2-ax+3=0\)’<br>→ \(1-a+3=0\), \(a=4\)</div>
+${SUM(R`대우는 원래 명제랑 운명 공동체, 역은 남남.`)}`},
+
+{ id:'c5', title:'충분조건과 필요조건', body: R`
+${RC(R`앞에서 배운 ‘\(p\to q\)가 참 = \(P\subset Q\)’를 그대로 이름만 바꿔 부르는 거예요. 새로운 계산은 없어요.`)}
+<p><b>예시로 이해하기</b>: ‘서울에 산다 ⇒ 한국에 산다’ (참)</p>
+<ul><li>서울에 산다는 건, 한국에 산다는 걸 알기에 <b>충분</b>해요. → 서울은 한국이기 위한 <b>충분조건</b></li><li>한국에 살지 않으면 서울에 살 수가 없죠. 한국은 서울이기 위해 <b>필요</b>해요. → 한국은 서울이기 위한 <b>필요조건</b></li></ul>
+${FIG.vennSub}
+<div class="key"><b>정리</b>\(p\Rightarrow q\)이면 \(p\)는 \(q\)이기 위한 충분조건, \(q\)는 \(p\)이기 위한 필요조건.<br><b>작은 집합이 충분, 큰 집합이 필요.</b><br>둘 다 성립(\(P=Q\))하면 필요충분조건.</div>
+<div class="warn"><b>문장 읽는 법 (제일 많이 헷갈림)</b>‘\(q\)는 \(p\)이기 위한 필요조건’ → 주어가 \(q\)라도, 화살표는 \(p\Rightarrow q\)예요.<br>요령: ‘<b>A는 B이기 위한 충분</b>’이면 A → B, ‘<b>A는 B이기 위한 필요</b>’면 B → A.</div>
+<div class="tip"><b>여러 개 이어 붙이기</b>\(p\Rightarrow q\), \(q\Rightarrow r\)이면 \(p\Rightarrow r\) (삼단논법). 화살표가 안 이어지면 대우로 뒤집어서 이어 보세요.</div>
+${SUM(R`작은 게 충분, 큰 게 필요.`)}`},
+
+{ id:'c6', title:'증명: 대우 증명법, 귀류법', body: R`
+${RC(R`중2 때 삼각형 합동 증명하면서 ‘가정 → 결론’ 순서로 썼던 거 기억나요? 이번엔 정면 돌파가 어려울 때 쓰는 우회로 두 가지를 배워요.`)}
+<p><b>1. 대우를 이용한 증명</b>: 원래 명제가 어려우면 대우를 증명해요. (대우가 참이면 원래도 참이니까!)</p>
+<p>예) ‘\(n^2\)이 짝수이면 \(n\)은 짝수’ → 바로는 막막하죠.<br>대우: ‘\(n\)이 홀수이면 \(n^2\)은 홀수’ → \(n=2k+1\)이면 \(n^2=4k^2+4k+1=2(2k^2+2k)+1\), 홀수! 끝.</p>
+<p><b>2. 귀류법</b>: “일단 결론이 틀렸다고 쳐 보자 → 말이 안 되는 상황(모순)이 생기네 → 그러니까 결론이 맞다.”</p>
+<p>예) \(\sqrt2\)는 무리수다.<br>유리수라고 치면 \(\sqrt2=\dfrac{m}{n}\) (\(m, n\)은 서로소) → \(m^2=2n^2\) → \(m\)은 짝수 → \(m=2k\)를 넣으면 \(n^2=2k^2\) → \(n\)도 짝수 → 둘 다 짝수면 서로소가 아니잖아요! 모순.</p>
+<div class="tip"><b>서술형 포인트</b>빈칸 채우기로 자주 나와요. ‘\(m^2\)이 짝수이므로 \(m\)도 짝수’라는 줄이 바로 위 대우 증명 결과를 쓰는 부분이에요.</div>
+${SUM(R`정면이 막히면 대우로 돌아가거나, 반대로 가정해서 모순을 찾는다.`)}`},
+],
+
+ineq:[
+{ id:'c1', title:'절대부등식이 뭐냐면', body: R`
+${RC(R`공통수학1 부등식 단원에서는 ‘\(x>3\)’처럼 <b>\(x\)의 범위를 구하는</b> 게 목표였죠. 이번엔 반대예요. 아무 수나 넣어도 <b>항상 참인</b> 부등식을 다뤄요.`)}
+<p>‘\(x^2+1>0\)’을 보세요. \(x\)에 뭘 넣어도 참이죠? 이런 게 <b>절대부등식</b>이에요. 반면 ‘\(x>3\)’은 \(x=1\)이면 거짓이라 절대부등식이 아니에요.</p>
+<p><b>모든 것의 출발점: (실수)\(^2\ge0\)</b></p>
+<p>실수를 제곱하면 절대 음수가 안 되죠. 이 사실 하나로 거의 다 증명돼요.</p>
+<p>예) \(a^2+b^2\ge2ab\) 증명: 빼 보면 \(a^2+b^2-2ab=(a-b)^2\ge0\). 끝! 등호는 \(a=b\)일 때.</p>
+<div class="key"><b>증명 공식</b>(좌변) − (우변)을 만들어서 완전제곱식으로 바꾼다 → \(\ge0\) 이면 증명 끝.<br>양변이 양수면 제곱해서 비교해도 돼요.</div>
+<ul><li>\(a^2\pm ab+b^2\ge0\)</li><li>\(|a|+|b|\ge|a+b|\) (등호는 \(ab\ge0\))</li></ul>
+${SUM(R`빼서 완전제곱 만들면 증명 끝.`)}`},
+
+{ id:'c2', title:'산술평균과 기하평균의 관계', body: R`
+${RC(R`평균 내는 법은 초등학교 때부터 알죠? \(\dfrac{a+b}{2}\), 이게 <b>산술평균</b>이에요. 오늘은 친구 하나가 더 나와요. 바로 <b>기하평균</b> \(\sqrt{ab}\).`)}
+<p><b>기하평균은 뭘까?</b> 가로 \(a\), 세로 \(b\)인 직사각형이 있을 때, 넓이가 똑같은 정사각형의 한 변이 \(\sqrt{ab}\)예요.</p>
+<div class="key"><b>공식</b>\(a>0,\ b>0\)일 때 \(\dfrac{a+b}{2}\ge\sqrt{ab}\), 등호는 \(a=b\)일 때.<br>시험에서는 이 모양으로 써요: \(a+b\ge2\sqrt{ab}\)</div>
+${FIG.amgm}
+<p>그림에서 반지름(산술평균)이 높이(기하평균)보다 항상 길거나 같죠. 딱 가운데(\(a=b\))일 때만 같아요.</p>
+<p><b>언제 쓰냐면</b></p>
+<ul><li><b>곱이 일정</b> → 합의 최솟값: \(x+\dfrac9x\ge2\sqrt{x\cdot\dfrac9x}=2\sqrt9=6\) (\(x=3\)일 때)</li><li><b>합이 일정</b> → 곱의 최댓값: \(a+b=10\)이면 \(10\ge2\sqrt{ab}\), \(ab\le25\)</li></ul>
+<div class="warn"><b>쓰기 전에 체크 2개</b>① 두 수가 둘 다 양수인가?<br>② 등호(\(a=b\))가 실제로 될 수 있나? 안 되면 그 값은 최솟값이 아니에요.</div>
+${SUM(R`곱이 일정하면 합의 최소, 합이 일정하면 곱의 최대. 양수랑 등호 확인!`)}`},
+
+{ id:'c3', title:'산술·기하 활용 기술', body: R`
+${RC(R`바로 앞 개념의 응용이에요. 문제에서는 공식이 바로 보이게 안 주고, 살짝 꼬아서 줘요. 꼬인 걸 푸는 기술 두 개만 알면 돼요.`)}
+<p><b>기술 1. 곱해서 상수 만들기</b></p>
+<p>\(x>1\)일 때 \(x+\dfrac{4}{x-1}\)의 최솟값? \(x\cdot\dfrac{4}{x-1}\)은 상수가 아니라서 바로 못 써요.<br>그래서 \(x\)를 \((x-1)+1\)로 쪼개요.</p>
+<p>\((x-1)+\dfrac{4}{x-1}+1\ge2\sqrt4+1=5\). 이제 곱하면 4로 상수죠!</p>
+<p><b>기술 2. 조건식을 곱해서 펼치기</b></p>
+<p>\(x+2y=4\)일 때 \(\dfrac1x+\dfrac2y\)의 최솟값?<br>→ \(\left(\dfrac1x+\dfrac2y\right)(x+2y)\)를 전개하면 \(5+\dfrac{2y}{x}+\dfrac{2x}{y}\)가 나와요. 뒤의 두 항은 곱하면 4, 산술·기하 쓸 수 있어요.</p>
+<div class="warn"><b>함정</b>산술·기하를 두 번 쓰면 등호 조건이 서로 달라서 동시에 성립 못 할 수 있어요. 그럴 땐 한 번에 쓸 수 있게 식을 다시 묶으세요.</div>
+${SUM(R`곱했을 때 문자가 사라지게 쪼개거나 곱해서 펼친다.`)}`},
+
+{ id:'c4', title:'코시-슈바르츠 부등식', body: R`
+${RC(R`이건 진짜 처음 보는 공식이에요. 근데 겁먹을 필요 없어요. 모양만 외우면 대입이 끝이에요.`)}
+<div class="key"><b>공식 모양</b>(제곱의 합) × (제곱의 합) ≥ (짝끼리 곱해서 더한 것)\(^2\)<br>\((a^2+b^2)(x^2+y^2)\ge(ax+by)^2\)<br>등호는 \(\dfrac{x}{a}=\dfrac{y}{b}\)일 때 (짝끼리 비율이 같을 때)</div>
+<p><b>언제 꺼내냐면</b></p>
+<ul><li>일차식 값(\(x+2y=\cdots\))이 주어지고 <b>제곱의 합</b>(\(x^2+y^2\))의 최솟값을 물을 때</li><li>제곱의 합이 주어지고 <b>일차식</b>의 최댓값·최솟값을 물을 때</li></ul>
+<p>예) \(x^2+y^2=5\)일 때 \(x+2y\)의 범위<br>\((1^2+2^2)(x^2+y^2)\ge(1\cdot x+2\cdot y)^2\) → \(25\ge(x+2y)^2\) → \(-5\le x+2y\le5\)</p>
+<div class="tip"><b>요령</b>계수 맞추기가 전부예요. \(4x^2\)이 보이면 \((2x)^2\)으로 보고 짝을 정하세요.<br>참고로 이 예시는 원 \(x^2+y^2=5\)와 직선 \(x+2y=k\)가 만나는 조건이랑 같아요. 도형의 방정식이랑 연결돼요.</div>
+${SUM(R`제곱합 × 제곱합 ≥ (짝곱의 합)².`)}`},
+],
+
+func:[
+{ id:'c1', title:'함수의 뜻, 정의역·공역·치역', body: R`
+${RC(R`중1 때 정비례 \(y=2x\), 반비례 \(y=\dfrac{6}{x}\), 중2 일차함수, 중3 이차함수까지 다 ‘함수’였어요. 그때 “\(x\)를 하나 정하면 \(y\)가 하나 정해지는 관계”라고 배웠죠. 이번엔 그걸 <b>집합</b>으로 다시 보는 거예요.`)}
+<p><b>자판기로 생각해 보세요</b></p>
+<ul><li>버튼(\(x\))을 누르면 음료(\(y\))가 <b>딱 하나</b> 나와야 정상이에요.</li><li>버튼 하나에 음료 두 개 → 고장! 함수 아님</li><li>아무것도 안 나오는 버튼이 있다 → 고장! 함수 아님</li><li>다른 버튼인데 같은 음료가 나온다 → 괜찮아요. 함수 맞음</li></ul>
+${mapDiagram(['1','2','3'],['a','b','c'],[[0,0],[1,0],[2,1]],'함수 O: 1, 2가 같은 곳으로 가도 OK. c가 남아도 OK.')}
+${mapDiagram(['1','2','3'],['a','b','c'],[[0,0],[0,1],[1,2]],'함수 X: 1이 두 군데로, 3은 갈 곳이 없음.')}
+<div class="key"><b>용어 (자판기 버전)</b><b>정의역 \(X\)</b> = 버튼 전체<br><b>공역 \(Y\)</b> = 진열장에 있는 음료 전체<br><b>치역</b> = 실제로 나오는 음료들 (\(\subset\) 공역)</div>
+<p><b>그래프로 판정</b>: 세로선(\(x=k\))을 쭉 그어서 그래프와 항상 한 점에서만 만나면 함수예요.</p>
+<div class="tip"><b>문제 유형</b>‘\(X\)에서 \(Y\)로의 함수인가?’ → \(X\)의 원소를 하나씩 다 넣어 보고, 결과가 전부 \(Y\) 안에 있는지 확인.</div>
+${SUM(R`버튼 하나에 음료 하나. 남는 음료는 괜찮다.`)}`},
+
+{ id:'c2', title:'서로 같은 함수', body: R`
+${RC(R`집합에서 ‘두 집합이 같다’는 원소가 완전히 같다는 뜻이었죠. 함수도 비슷해요.`)}
+<p>두 함수 \(f, g\)가 같으려면 세 가지가 다 같아야 해요.</p>
+<ul><li>정의역이 같고</li><li>공역이 같고</li><li>정의역의 모든 \(x\)에서 \(f(x)=g(x)\)</li></ul>
+<p>예) \(X=\{-1,1\}\)에서 \(f(x)=x^2\), \(g(x)=|x|\) → 식은 다르게 생겼는데 넣어 보면 둘 다 1이에요. 그래서 같은 함수!</p>
+${SUM(R`식 모양 말고, 넣었을 때 결과가 같은지 본다.`)}`},
+
+{ id:'c3', title:'일대일함수와 일대일대응', body: R`
+${RC(R`중2 일차함수 그래프 기억나요? 계속 올라가거나 계속 내려가는 직선이었죠. 그런 그래프가 바로 일대일대응의 대표 선수예요.`)}
+<p><b>교실 사물함으로 생각하기</b></p>
+<ul><li><b>일대일함수</b>: 학생마다 <b>서로 다른</b> 사물함을 써요. 두 명이 한 사물함을 같이 쓰면 안 돼요. (빈 사물함은 남아도 OK)</li><li><b>일대일대응</b>: 일대일함수인데, 빈 사물함도 <b>하나도 없어요</b>. 학생 수 = 사물함 수, 딱 맞게 짝지어짐.</li></ul>
+<div class="key"><b>정의</b>일대일함수: \(x_1\ne x_2\)이면 \(f(x_1)\ne f(x_2)\)<br>일대일대응: 일대일함수 + 치역 = 공역</div>
+${FIG.hline}
+<p><b>그래프로 판정</b>: 가로선을 그어서 두 번 이상 만나면 일대일이 아니에요. 이차함수(포물선)는 가로선이 두 번 만나니까 일대일 X.</p>
+<div class="warn"><b>구간별 함수 문제</b>\(x\ge0\)과 \(x<0\)에서 식이 다른 함수가 일대일대응이려면<br>① 두 직선 기울기의 <b>부호가 같고</b> (둘 다 올라가거나 둘 다 내려가거나)<br>② 경계에서 <b>끊기지 않고 이어져야</b> 해요.</div>
+${SUM(R`가로선 테스트 통과 + 빈자리 없음 = 일대일대응.`)}`},
+
+{ id:'c4', title:'항등함수, 상수함수, 함수의 개수', body: R`
+${RC(R`공통수학1 경우의 수에서 순열 \(_n\mathrm{P}_r\), 팩토리얼 \(n!\) 배웠죠? 함수 개수 세는 데 그대로 써요.`)}
+<ul><li><b>항등함수</b>: 넣은 그대로 나와요. \(f(x)=x\)</li><li><b>상수함수</b>: 뭘 넣어도 같은 값. \(f(x)=c\)</li></ul>
+<p><b>함수 개수 세기</b> (\(n(X)=m\), \(n(Y)=n\))</p>
+<p>\(X\)의 원소 하나하나가 \(Y\)의 어디로 갈지 고르는 문제예요.</p>
+<ul><li><b>함수</b>: 각자 \(n\)곳 중 아무 데나 → \(n\times n\times\cdots=n^m\)</li><li><b>일대일함수</b>: 겹치면 안 되니까 하나씩 줄어요 → \(n(n-1)(n-2)\cdots=\,_n\mathrm{P}_m\)</li><li><b>일대일대응</b> (\(m=n\)): \(n!\)</li></ul>
+<div class="tip"><b>항등함수 문제 꿀팁</b>‘\(f\)가 \(X\)에서 \(X\)로의 항등함수’라고 하면 \(f(x)=x\)를 푸세요. 그 해들이 곧 \(X\)의 원소예요.</div>
+${SUM(R`함수 \(n^m\), 일대일 \(_n\mathrm{P}_m\), 일대일대응 \(n!\).`)}`},
+],
+
+inv:[
+{ id:'c1', title:'합성함수', body: R`
+${RC(R`바로 앞의 ‘함수’ 개념에서 이어져요. 함수 두 개를 기계처럼 연결하는 거예요.`)}
+<p><b>공장 컨베이어 벨트를 떠올려 보세요</b></p>
+<p>재료 \(x\)가 먼저 <b>\(g\) 기계</b>를 통과해서 \(g(x)\)가 되고, 그다음 <b>\(f\) 기계</b>를 통과해서 \(f(g(x))\)가 돼요. 이걸 \((f\circ g)(x)\)라고 써요.</p>
+<div class="key"><b>정의</b>\((f\circ g)(x)=f(g(x))\)<br><b>오른쪽(안쪽) \(g\)부터</b> 계산한다!</div>
+<p>예) \(f(x)=2x+1,\ g(x)=x^2\)<br>\((f\circ g)(2)=f(g(2))=f(4)=9\)<br>\((g\circ f)(2)=g(f(2))=g(5)=25\) → 순서 바꾸면 결과가 달라요.</p>
+<ul><li>교환법칙 X: \(f\circ g\ne g\circ f\) (보통)</li><li>결합법칙 O: \((f\circ g)\circ h=f\circ(g\circ h)\)</li></ul>
+<div class="tip"><b>\(f\circ g=h\)에서 \(f(\square)\) 구하기</b>\(f\) 식 전체를 구할 필요 없어요. \(g(x)=\square\)가 되는 \(x\)를 찾아서 \(h(x)\)에 넣으면 끝.</div>
+${SUM(R`안쪽부터 차례로 통과.`)}`},
+
+{ id:'c2', title:'역함수의 뜻과 구하는 법', body: R`
+${RC(R`일대일대응 개념 기억나죠? 그게 여기서 필요해요. 역함수는 함수를 ‘되감기’하는 거예요.`)}
+<p><b>되감기로 생각하기</b>: \(f\)가 “2배 하고 1 더하기”라면, 되돌리는 \(f^{-1}\)은 “1 빼고 2로 나누기”예요.<br>\(f(3)=7\)이면 \(f^{-1}(7)=3\).</p>
+<div class="key"><b>핵심 한 줄</b>\(f(a)=b\) ⟺ \(f^{-1}(b)=a\)</div>
+<p><b>왜 일대일대응이어야 할까?</b> \(f(1)=5\), \(f(2)=5\)라면 5를 되감을 때 1로 가야 할지 2로 가야 할지 모르잖아요. 그래서 일대일대응일 때만 역함수가 있어요.</p>
+<p><b>역함수 구하는 순서</b></p>
+<ul><li>① \(y=f(x)\)를 \(x=\cdots\) 꼴로 정리</li><li>② \(x\)와 \(y\)를 바꾸기</li><li>③ 정의역 ↔ 치역도 바뀐다</li></ul>
+<p>예) \(y=3x-6\) → \(x=\dfrac{y}{3}+2\) → \(f^{-1}(x)=\dfrac{x}{3}+2\)</p>
+<div class="tip"><b>값만 물어보면?</b>\(f^{-1}(5)\)를 구하라고 하면 역함수 식 만들지 말고 \(f(x)=5\)를 풀어요. 훨씬 빨라요.</div>
+${SUM(R`\(f(a)=b\)면 \(f^{-1}(b)=a\). 일대일대응만 되감기 가능.`)}`},
+
+{ id:'c3', title:'역함수의 성질', body: R`
+${RC(R`합성함수랑 역함수를 섞으면 어떻게 될까요? 성질 3개만 챙기면 돼요.`)}
+<ul><li>\((f^{-1})^{-1}=f\) → 되감기를 되감으면 원래대로</li><li>\(f^{-1}\circ f=I\), \(f\circ f^{-1}=I\) → 했다가 되감으면 제자리</li><li>\((f\circ g)^{-1}=g^{-1}\circ f^{-1}\) → <b>순서가 뒤집혀요</b></li></ul>
+<p><b>순서가 왜 뒤집힐까? 양말과 신발!</b> 신을 땐 양말(\(g\)) → 신발(\(f\)). 벗을 땐? 신발 먼저 벗고(\(f^{-1}\)), 그다음 양말(\(g^{-1}\)). 그래서 \(g^{-1}\circ f^{-1}\).</p>
+<div class="warn"><b>자주 틀림</b>\((g\circ f)^{-1}(2)=f^{-1}(g^{-1}(2))\). \(g^{-1}\)부터 계산해요.</div>
+<p>예) \((f\circ g)^{-1}(3x-1)=x\)이면, 양쪽에 \(f\circ g\)를 씌워서 \((f\circ g)(x)=3x-1\).</p>
+${SUM(R`벗을 땐 신발부터.`)}`},
+
+{ id:'c4', title:'역함수의 그래프', body: R`
+${RC(R`<b>도형의 이동</b> 단원에서 직선 \(y=x\)에 대한 대칭이동은 \(x\)와 \(y\)를 바꾸는 거였죠? 역함수 구할 때도 \(x, y\)를 바꿨어요. 그래서 역함수 그래프는 \(y=x\)에 대칭이에요!`)}
+${FIG.inverse}
+<div class="key"><b>대칭</b>\(y=f(x)\)와 \(y=f^{-1}(x)\)의 그래프는 직선 \(y=x\)에 대해 대칭.</div>
+<p><b>두 그래프의 교점 찾기</b>: \(f\)가 <b>증가함수</b>(계속 올라가는 함수)이면, 두 그래프는 꼭 \(y=x\) 위에서 만나요. 그래서 \(f(x)=x\)만 풀면 돼요.</p>
+<div class="warn"><b>감소함수는 예외</b>내려가는 함수는 \(y=x\) 밖에서도 만날 수 있어요. 이 방법 그대로 쓰면 안 돼요.</div>
+<p>보너스: 자기 자신이 역함수인 일차함수는 \(y=x\) 또는 기울기가 \(-1\)인 직선(\(y=-x+k\))이에요. \(y=x\)로 접어도 그대로니까요.</p>
+${SUM(R`역함수는 \(y=x\)로 접은 그림. 증가함수면 교점은 \(f(x)=x\).`)}`},
+],
+
+rat:[
+{ id:'c1', title:'유리식 계산과 부분분수', body: R`
+${RC(R`중학교 때 분수 통분, 약분 했죠? <b>유리식</b>은 분모에 문자가 있는 분수식일 뿐이에요. 계산 방법은 똑같아요. 공통수학1의 항등식(계수비교법, 수치대입법)도 여기서 다시 써요.`)}
+<p>\(\dfrac{1}{x}+\dfrac{1}{x+1}\)처럼 분모에 문자가 들어간 식이 유리식이에요. 덧셈·뺄셈은 통분, 곱셈·나눗셈은 인수분해 후 약분.</p>
+<p><b>부분분수: 분수 하나를 두 조각으로 쪼개기</b></p>
+<p>통분의 반대 방향이에요. \(\dfrac1x-\dfrac1{x+2}\)를 통분하면 \(\dfrac{2}{x(x+2)}\)이죠? 그러니까 거꾸로 이렇게 쪼갤 수 있어요.</p>
+<div class="key"><b>부분분수 공식</b>\[\frac{1}{AB}=\frac{1}{B-A}\left(\frac1A-\frac1B\right)\]분모의 차(\(B-A\))로 나눠 주는 것만 기억!</div>
+<p><b>망원 합</b>: 쪼갠 걸 여러 개 더하면 가운데가 다 지워지고 <b>처음과 끝만</b> 남아요. 망원경 접듯이요.</p>
+<div class="tip"><b>미정계수 구하기</b>\(\dfrac ax+\dfrac b{x-1}+\dfrac c{x-2}=\dfrac{4}{x(x-1)(x-2)}\) 같은 꼴은 양변에 분모를 곱하고 \(x=0,1,2\)를 하나씩 넣으면 바로 나와요. (공통수학1 수치대입법!)</div>
+${SUM(R`쪼개고 더하면 처음과 끝만 남는다.`)}`},
+
+{ id:'c2', title:'y = k/(x−p) + q 의 그래프', body: R`
+${RC(R`중1 때 <b>반비례</b> \(y=\dfrac{a}{x}\) 그래프 그렸죠? 두 갈래로 휘어진 곡선. 그게 유리함수의 기본형이에요. 그리고 <b>도형의 이동</b>에서 평행이동은 \(x\to x-p\), \(y\to y-q\)였죠. 이 둘을 합치면 끝이에요.`)}
+<p>\(y=\dfrac{k}{x-p}+q\)는 반비례 그래프 \(y=\dfrac kx\)를 <b>오른쪽으로 \(p\), 위로 \(q\)</b>만큼 옮긴 거예요.</p>
+${FIG.rational}
+<p><b>점근선이 뭐냐면</b>: 그래프가 한없이 가까이 가지만 절대 닿지 않는 선이에요.</p>
+<ul><li>세로 점근선 \(x=p\): 분모가 0이 되면 안 되니까 \(x=p\)에서는 그래프가 없어요.</li><li>가로 점근선 \(y=q\): \(\dfrac{k}{x-p}\)는 절대 0이 안 되니까 \(y\)는 \(q\)가 될 수 없어요.</li></ul>
+<div class="key"><b>바로 읽기</b>점근선 \(x=p,\ y=q\) / 정의역 \(x\ne p\) / 치역 \(y\ne q\)<br>\(k>0\)이면 1, 3사분면 방향, \(k<0\)이면 2, 4사분면 방향<br>\(|k|\)가 클수록 점근선 교점에서 멀어짐</div>
+<div class="tip"><b>대칭</b>그래프는 점근선 교점 \((p,q)\)에 대해 점대칭이고, \((p,q)\)를 지나는 기울기 \(1\), \(-1\)인 두 직선에 대해 선대칭이에요.<br>그래서 ‘직선 \(y=x-1\)에 대해 대칭’이라는 말이 나오면 → \((p,q)\)가 그 직선 위에 있다!</div>
+${SUM(R`반비례 그래프를 \((p,q)\)로 옮긴 것. 점근선 교점이 중심.`)}`},
+
+{ id:'c3', title:'y = (ax+b)/(cx+d) 의 변형과 치역', body: R`
+${RC(R`공통수학1 다항식의 나눗셈 기억나요? 분자를 분모로 나누는 그 방법으로 모양을 바꿔요.`)}
+<p>\(y=\dfrac{5x-6}{x-2}\)처럼 생긴 건 바로 그래프가 안 보이죠. 분자를 분모로 나눠서 \(\dfrac{k}{x-p}+q\) 꼴로 바꿔요.</p>
+<p>\(5x-6=5(x-2)+4\)이니까 \(y=\dfrac{5(x-2)+4}{x-2}=5+\dfrac{4}{x-2}\). 이제 점근선 \(x=2,\ y=5\)가 보이죠!</p>
+<div class="key"><b>빠른 길</b>\(y=\dfrac{ax+b}{cx+d}\)의 점근선은 \(x=-\dfrac dc\), \(y=\dfrac ac\).<br>(분모가 0 되는 \(x\), 그리고 \(x\)의 계수끼리 나눈 값)</div>
+<p><b>정의역이 일부만 주어지면?</b> 그 구간이 점근선 한쪽에만 있으면 그래프가 계속 올라가거나 계속 내려가요. 그래서 <b>양 끝값만 넣으면</b> 치역이 나와요.</p>
+${SUM(R`나눠서 \(\dfrac{k}{x-p}+q\)로. 구간이면 양 끝값.`)}`},
+
+{ id:'c4', title:'평행이동, 역함수', body: R`
+${RC(R`평행이동은 도형의 이동, 역함수는 바로 앞 단원. 배운 걸 유리함수에 적용만 하면 돼요.`)}
+<p><b>평행이동</b>: \(y=\dfrac kx\)를 \(x\)축 방향으로 \(p\), \(y\)축 방향으로 \(q\)만큼 옮기면 \(y=\dfrac{k}{x-p}+q\). 점근선 교점이 \((0,0)\)에서 \((p,q)\)로 이사 가는 거예요.</p>
+<div class="tip"><b>문제 패턴</b>원이나 점의 이동으로 ‘얼마나 옮겼는지’를 알려 주는 문제가 많아요. 먼저 이동량부터 구하세요. 원 중심이 \((2,-1)\)에서 \((4,2)\)로 갔다면 이동량은 \((2,3)\).</div>
+<div class="key"><b>역함수 공식</b>\(y=\dfrac{ax+b}{cx+d}\)의 역함수는 \(y=\dfrac{-dx+b}{cx-a}\)<br>\(a\)와 \(d\)의 자리를 바꾸고 둘 다 부호를 바꾼다.</div>
+${SUM(R`이동량 먼저, 역함수는 \(a\)와 \(d\) 자리 바꾸고 부호 반대.`)}`},
+],
+
+irr:[
+{ id:'c1', title:'무리식의 조건과 계산', body: R`
+${RC(R`중3 때 <b>제곱근</b> 배웠죠? 근호 안에 음수는 안 된다, 분모에 근호가 있으면 유리화한다. 그리고 공통수학1 <b>복소수</b>에서 \(\sqrt{-2}=\sqrt2\,i\)도 했어요. 이게 전부 다시 나와요.`)}
+<p><b>무리식</b>은 근호 안에 문자가 있는 식이에요. 예: \(\sqrt{x-1}\)</p>
+<div class="key"><b>값이 실수가 되려면</b>근호 안 \(\ge0\), 분모 \(\ne0\). 이 두 개가 정의역을 정해요.</div>
+<p><b>분모의 유리화</b> (중3 그대로):</p>
+\[\frac{1}{\sqrt a+\sqrt b}=\frac{\sqrt a-\sqrt b}{a-b}\]
+<div class="warn"><b>음수의 제곱근 (시험 단골)</b>보통은 \(\sqrt a\sqrt b=\sqrt{ab}\)인데, 이게 깨지는 경우가 딱 하나예요.<br>\(\sqrt a\sqrt b=-\sqrt{ab}\)이면 → \(a<0,\ b<0\)<br>\(\dfrac{\sqrt a}{\sqrt b}=-\sqrt{\dfrac ab}\)이면 → \(a\ge0,\ b<0\)<br>예) \(\sqrt{-8}\sqrt{-2}=(2\sqrt2 i)(\sqrt2 i)=4i^2=-4\)</div>
+<p>\(\sqrt{x^2}=|x|\). 절댓값은 \(x\)의 범위를 알아야 풀 수 있어요.</p>
+<div class="tip"><b>망원 합 (유리화 버전)</b>\[\frac{1}{\sqrt{n+1}+\sqrt n}=\sqrt{n+1}-\sqrt n\]여러 개 더하면 처음과 끝만 남아요.</div>
+${SUM(R`근호 안 0 이상, 음수끼리 곱하면 마이너스가 붙는다.`)}`},
+
+{ id:'c2', title:'y = √(a(x−p)) + q 의 그래프', body: R`
+${RC(R`\(y=\sqrt x\)는 사실 중3 이차함수 \(y=x^2\)의 오른쪽 반쪽(\(x\ge0\))을 \(y=x\)로 접은 거예요. 바로 앞에서 배운 역함수! 그래서 모양이 <b>옆으로 누운 포물선 반쪽</b>이에요.`)}
+${FIG.sqrt4}
+<p>기본 모양 4개만 머리에 넣으세요. 시작점은 다 원점이고, 뻗는 방향만 달라요.</p>
+<div class="key"><b>읽는 법 3단계</b>① 시작점은 \((p,q)\)<br>② 근호 <b>안</b> \(a\)의 부호: \(+\)면 오른쪽, \(-\)면 왼쪽<br>③ 근호 <b>앞</b> 부호: \(+\)면 위, \(-\)면 아래</div>
+<ul><li>\(y=\sqrt{a(x-p)}+q\) (\(a>0\)): 정의역 \(x\ge p\), 치역 \(y\ge q\)</li><li>\(y=\sqrt{a(x-p)}+q\) (\(a<0\)): 정의역 \(x\le p\), 치역 \(y\ge q\)</li></ul>
+<div class="warn"><b>꼭 먼저 묶기</b>\(\sqrt{2x+2}\)는 \(\sqrt{2(x+1)}\)로 묶어야 시작점 \(x=-1\)이 보여요. 안 묶고 \(x=-2\)라고 읽는 실수 진짜 많아요.</div>
+${SUM(R`시작점 \((p,q)\), 안쪽 부호는 좌우, 바깥 부호는 위아래.`)}`},
+
+{ id:'c3', title:'평행이동과 대칭이동', body: R`
+${RC(R`<b>도형의 이동</b> 단원 내용을 무리함수에 그대로 써요. 식에서 뭘 바꾸면 되는지만 기억하면 돼요.`)}
+<ul><li><b>평행이동</b> \((m,n)\): \(x\) 대신 \(x-m\), \(y\) 대신 \(y-n\)</li><li><b>\(x\)축 대칭</b>: \(y\) 대신 \(-y\) → 근호 앞 부호가 바뀜 (위아래 뒤집기)</li><li><b>\(y\)축 대칭</b>: \(x\) 대신 \(-x\) → 근호 안 부호가 바뀜 (좌우 뒤집기)</li><li><b>원점 대칭</b>: 둘 다</li></ul>
+<div class="warn"><b>순서 주의</b>‘대칭이동 후 평행이동’과 ‘평행이동 후 대칭이동’은 결과가 달라요. 문제에 적힌 순서대로 식에 하나씩 적용하세요.</div>
+<div class="tip"><b>넓이 문제 꿀팁</b>모양이 같은 무리함수 그래프 두 개 사이 넓이는, 한쪽을 잘라서 반대편에 붙이면 <b>직사각형</b>이 되는 경우가 많아요. 적분 없이 풀려요.</div>
+${SUM(R`안쪽 바꾸면 좌우, 바깥 바꾸면 위아래.`)}`},
+
+{ id:'c4', title:'역함수와 교점', body: R`
+${RC(R`역함수 단원 + 공통수학1 판별식의 합작이에요. 처음엔 어려워 보여도 패턴이 정해져 있어요.`)}
+<p><b>역함수</b>: \(y=\sqrt{x-p}+q\)의 역함수는 \(y=(x-q)^2+p\) (\(x\ge q\)). 이차함수의 <b>반쪽</b>이 돼요. 정의역 조건 꼭 붙이세요!</p>
+<p><b>직선과 몇 번 만나는지</b>: 직선을 위아래로 움직여 본다고 상상하세요. 개수가 바뀌는 순간이 딱 두 개예요.</p>
+<div class="key"><b>경계 두 개</b>① 직선이 그래프의 <b>시작점</b>을 지날 때<br>② 직선이 그래프에 <b>접할 때</b> (양변 제곱해서 판별식 \(D=0\))</div>
+<p><b>사분면 문제</b>: 시작점이 어디 있는지 + 어느 방향으로 뻗는지, 이 두 개만 보면 지나는 사분면이 바로 정해져요.</p>
+${SUM(R`시작점이랑 접할 때, 이 두 순간이 경계.`)}`},
+],
+};
+UNITS.forEach(u=>{ if (NEWC[u.id]) u.concepts = NEWC[u.id]; });
+
+</script>
+<script>
+/* ========== 저장 ========== */
+const KEY = 'gongsu2-final-v1';
+let S = { att:{}, checks:{}, why:{}, log:[] };
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch(e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} }
+
+const $ = (s, el=document) => el.querySelector(s);
+const app = $('#app');
+const NUM = ['①','②','③','④','⑤'];
+const WHY = ['개념을 몰랐다','공식·성질이 헷갈렸다','문제 해석을 잘못했다','계산 실수','시간이 부족했다'];
+
+function typeset(el){ if (window.MathJax && MathJax.typesetPromise) { MathJax.typesetPromise([el||app]).catch(()=>{}); } else { setTimeout(()=>typeset(el), 300); } }
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function fmt(sec){ sec = Math.max(0, Math.round(sec)); return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'); }
+function unitById(id){ return UNITS.find(u=>u.id===id); }
+function findProblem(pid){ for (const u of UNITS) { const p = u.problems.find(p=>p.id===pid); if (p) return {u,p}; } return null; }
+
+/* D-day */
+(function(){
+  const exam = new Date(2026, 11, 9); const now = new Date(); now.setHours(0,0,0,0);
+  const d = Math.round((exam - now)/86400000);
+  $('#dday').textContent = d > 0 ? '기말 D-'+d : (d === 0 ? '기말 D-day' : '기말 진행 중');
+})();
+
+/* ========== 기록·통계 ========== */
+function record(pid, variant, ok, sec){
+  const k = pid + (variant ? 'v' : '');
+  const a = S.att[k] || { n:0, ok:0, t:0, last:null, streak:0 };
+  a.n++; if (ok) { a.ok++; a.streak++; } else a.streak = 0;
+  a.t += sec; a.last = ok;
+  S.att[k] = a;
+  S.log.push({ k, ok, sec, at:Date.now() });
+  if (S.log.length > 500) S.log = S.log.slice(-500);
+  save();
+}
+function unitStats(u){
+  let n=0, ok=0, t=0, tgt=0, solved=0; const tagWrong = {}; const why = {};
+  u.problems.forEach(p=>{
+    ['', 'v'].forEach(s=>{
+      const a = S.att[p.id+s]; if (!a) return;
+      n += a.n; ok += a.ok; t += a.t; tgt += p.t * a.n;
+      if (a.n - a.ok > 0) tagWrong[p.tag] = (tagWrong[p.tag]||0) + (a.n - a.ok);
+    });
+    if (S.att[p.id]) solved++;
+    const w = S.why[p.id]; if (w) w.forEach(x=>why[x]=(why[x]||0)+1);
+  });
+  return { n, ok, acc: n ? ok/n : null, avg: n ? t/n : 0, ratio: tgt ? t/tgt : 0, solved, tagWrong, why };
+}
+function conceptWrongCount(u, cid){
+  let w = 0;
+  u.problems.filter(p=>p.c===cid).forEach(p=>{ ['', 'v'].forEach(s=>{ const a=S.att[p.id+s]; if (a) w += a.n-a.ok; }); });
+  const ck = u.checks.filter(c=>c.c===cid);
+  ck.forEach((c,i)=>{ const r = S.checks[u.id+':'+u.checks.indexOf(c)]; if (r===false) w++; });
+  return w;
+}
+function advice(u){
+  const s = unitStats(u);
+  const out = [];
+  if (!s.n) return ['아직 푼 기록이 없어요. 개념 카드를 한 번 훑고, 개념 확인 문제부터 풀어 보세요.'];
+  const pct = Math.round(s.acc*100);
+  const topTag = Object.entries(s.tagWrong).sort((a,b)=>b[1]-a[1])[0];
+  const topWhy = Object.entries(s.why).sort((a,b)=>b[1]-a[1])[0];
+  if (s.acc < .5) {
+    out.push(`정답률 ${pct}%면 문제를 더 푸는 것보다 개념으로 돌아가는 게 빨라요. 개념 카드를 다시 읽고, 해설을 덮은 채 직접 설명할 수 있을 때 실전으로 넘어오세요.`);
+  } else if (s.acc < .8) {
+    out.push(`정답률 ${pct}%. 기본은 잡혔는데 구멍이 있어요.` + (topTag ? ` 가장 많이 틀린 건 '${topTag[0]}' 유형이니 그 개념 카드와 변형 문제를 먼저 처리하세요.` : ''));
+  } else {
+    out.push(`정답률 ${pct}%, 안정권이에요.` + (s.ratio > 1.3 ? ' 다만 목표 시간보다 꽤 오래 걸려요.' : ' 이 단원은 오답만 한 번 더 돌리고 다음 단원으로 가도 돼요.'));
+  }
+  if (s.ratio > 1.3) out.push(`평균 풀이 시간이 목표의 ${Math.round(s.ratio*100)}%예요. 풀이 첫 줄(무슨 개념을 쓸지)을 30초 안에 정하는 연습을 하세요. 막히면 1분 넘기기 전에 힌트를 보고, 해설의 첫 줄만 외워 두는 것도 방법이에요.`);
+  else if (s.ratio && s.ratio < .6 && s.acc < .8) out.push('너무 빨리 풀고 틀리는 편이에요. 보기 고르기 전에 조건(정의역, 양수 조건, 등호 성립)을 한 번 더 확인하세요.');
+  if (topWhy) {
+    const m = {
+      '개념을 몰랐다':'틀린 이유로 개념 부족을 가장 많이 골랐어요. 실전 문제는 잠깐 멈추고 개념 확인 문제를 다시 맞혀 보세요.',
+      '공식·성질이 헷갈렸다':'공식이 헷갈린다고 자주 골랐어요. 공식 탭의 내용을 손으로 3번 써 보고, 각 공식이 언제 쓰이는지 한 줄씩 적어 두세요.',
+      '문제 해석을 잘못했다':'문제 해석 실수가 많아요. 조건에 밑줄을 치고, "구하는 것"을 문제 옆에 따로 적고 시작하세요.',
+      '계산 실수':'계산 실수가 많아요. 검산은 끝에 몰아서 하지 말고 한 줄 넘어갈 때마다 부호와 괄호만 확인하세요.',
+      '시간이 부족했다':'시간 부족을 자주 골랐어요. 아는 문제는 목표 시간 안에 끊는 연습부터. 모르는 문제는 2분 넘기면 넘기는 습관을 들이세요.'
+    };
+    out.push(m[topWhy[0]]);
+  }
+  return out;
+}
+function todayTodo(){
+  let worst = null;
+  UNITS.forEach(u=>{
+    const s = unitStats(u);
+    const score = s.n ? s.acc : 2;
+    if (!worst || score < worst.score) worst = { u, score, s };
+  });
+  const wrongs = Object.keys(S.att).filter(k=>!k.endsWith('v') && S.att[k].last===false).length;
+  if (wrongs >= 3) return { text:`다시 풀어야 할 오답이 ${wrongs}문제 있어요. 새 문제보다 오답을 먼저 정리하세요.`, act:'오답 다시 풀기', go:()=>startSession(null, 'wrong') };
+  if (worst && worst.score === 2) return { text:`'${worst.u.name}' 단원을 아직 시작하지 않았어요. 개념부터 열어 보세요.`, act:'개념 보기', go:()=>openUnit(worst.u.id, 'concept') };
+  if (worst && worst.score < .8) return { text:`'${worst.u.name}' 정답률이 ${Math.round(worst.score*100)}%로 가장 낮아요. 오늘은 이 단원에 집중하세요.`, act:'이 단원 풀기', go:()=>openUnit(worst.u.id, 'practice') };
+  return { text:'모든 단원이 80% 이상이에요. 섞어 풀기로 실전 감각을 유지하세요.', act:'섞어 풀기', go:()=>startSession(null, 'mix') };
+}
+
+/* ========== 라우팅 ========== */
+let stack = [];
+let tickTimer = null;
+function setTitle(t, back){ const el=$('#title'); el.textContent = back ? t : 'Proof'; el.classList.toggle('logo', !back); el.classList.toggle('plain', !!back); $('#backBtn').hidden = !back; const f=document.querySelector('.fab'); if (f && back) f.remove(); }
+try { const fs = localStorage.getItem(KEY+'-fs'); if (fs) document.documentElement.dataset.fs = fs; const th = localStorage.getItem(KEY+'-th') || 'light'; if (th==='auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = th; } catch(e) {}
+function stopTick(){ if (tickTimer) { clearInterval(tickTimer); tickTimer = null; } }
+function anim(cls){ app.classList.remove('enter-up','enter-l','enter-r'); void app.offsetWidth; app.classList.add(cls||'enter-up'); }
+function go(fn, push=true, cls){ stopTick(); if (push) stack.push(fn); fn(); anim(cls); window.scrollTo(0,0); }
+$('#backBtn').onclick = ()=>{ stopTick(); stack.pop(); const f = stack[stack.length-1] || renderHome; f(); anim('enter-r'); window.scrollTo(0,0); };
+const TABS = ['home','units','coach','review','more'];
+let curTab = 'home';
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{
+  const dir = TABS.indexOf(b.dataset.tab) >= TABS.indexOf(curTab) ? 'enter-l' : 'enter-r'; curTab = b.dataset.tab;
+  document.querySelectorAll('nav.tabs button').forEach(x=>x.classList.toggle('on', x===b));
+  stack = [];
+  const t = b.dataset.tab;
+  go(t==='home'?renderHome: t==='units'?renderUnits: t==='coach'?renderReport: t==='review'?renderWrong: renderMore, true, dir);
+});
+function setTab(t){ curTab = t; document.querySelectorAll('nav.tabs button').forEach(x=>x.classList.toggle('on', x.dataset.tab===t)); }
+
+/* ========== 홈 ========== */
+const UICON = { prop:'⇒', ineq:'≥', func:'f', inv:'f∘g', rat:'k/x', irr:'√' };
+function unitCards(){
+  return UNITS.map(u=>{
+    const s = unitStats(u); const done = Math.round(s.solved/u.problems.length*100);
+    return `<button class="unit" data-u="${u.id}"><span class="no">${UICON[u.id]}</span>
+      <span><span class="t">${u.name}</span><span class="s">개념 ${u.concepts.length}개 · 실전 ${u.problems.length}문제</span><span class="bar"><i style="width:${done}%"></i></span></span>
+      <span class="pct">${s.acc===null?'›':Math.round(s.acc*100)+'%'}</span></button>`;
+  }).join('');
+}
+function addFab(){ document.querySelector('.fab')?.remove(); const b=document.createElement('button'); b.className='fab'; b.innerHTML='<span style="font-size:1.3em;line-height:1">＋</span> 섞어 풀기'; b.onclick=()=>startSession(null,'mix'); document.body.appendChild(b); }
+function renderHome(){
+  setTitle('', false); setTab('home');
+  const td = todayTodo();
+  const wrongs = Object.keys(S.att).filter(k=>!k.endsWith('v') && S.att[k].last===false).length;
+  let N=0, OK=0; UNITS.forEach(u=>{ const s=unitStats(u); N+=s.n; OK+=s.ok; });
+  const solved = UNITS.reduce((a,u)=>a+unitStats(u).solved,0), total = UNITS.reduce((a,u)=>a+u.problems.length,0);
+  app.innerHTML = `
+    <section class="phead"><h2>오늘 공부</h2><p>명제부터 무리함수까지, 기말 범위만</p></section>
+    <button class="hero" id="heroBtn"><span class="hl">다시 풀 오답</span><span class="hn">${wrongs}개</span><span class="hs">${wrongs ? '눌러서 바로 다시 풀어요' : '오늘은 다 했어요'}</span></button>
+    <h3 class="sh">기록</h3>
+    <div class="rows"><div class="row"><span>푼 문제</span><b>${solved} / ${total}</b></div><div class="row"><span>전체 정답률</span><b>${N?Math.round(OK/N*100)+'%':'—'}</b></div></div>
+    <div class="todo"><b>코치 한마디</b><p style="margin:0">${td.text}</p><div class="act"><button class="btn" id="todoBtn">${td.act}</button></div></div>
+    <h3 class="sh">단원</h3>
+    <div class="unitlist stagger">${unitCards()}</div>
+    <div class="brandline"><b class="logo">Proof</b><span>푼 만큼 증명되는 실력</span></div>
+    <p class="small" style="margin:6px 4px 0">실전 문제 출처는 문제마다 표시돼요. 개념 확인, 변형 문제는 직접 만든 문제예요.</p>`;
+  $('#heroBtn').onclick = ()=> wrongs ? startSession(null,'wrong') : startSession(null,'mix');
+  $('#todoBtn').onclick = td.go;
+  app.querySelectorAll('.unit').forEach(b=>b.onclick=()=>openUnit(b.dataset.u, 'concept'));
+  addFab();
+}
+function renderUnits(){
+  setTitle('', false);
+  app.innerHTML = `<section class="phead"><h2>단원</h2><p>단원 ${UNITS.length}개 · 실전 ${UNITS.reduce((a,u)=>a+u.problems.length,0)}문제</p></section><div class="unitlist stagger">${unitCards()}</div>`;
+  app.querySelectorAll('.unit').forEach(b=>b.onclick=()=>openUnit(b.dataset.u, 'concept'));
+  addFab();
+}
+function renderMore(){
+  setTitle('', false); document.querySelector('.fab')?.remove();
+  const ic = d=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const fs = document.documentElement.dataset.fs || 'm'; let th='light'; try{ th = localStorage.getItem(KEY+'-th') || 'light'; }catch(e){}
+  app.innerHTML = `<section class="phead"><h2>더보기</h2></section>
+  <div class="menu">
+    <h4>공부</h4>
+    <button class="mi" id="mWrong">${ic('<path d="M6 3h12v18l-6-4-6 4z"/>')}오답노트</button>
+    <button class="mi" id="mSheet">${ic('<path d="M6 3h12v18H6z"/><path d="M9 8h6M9 12h6M9 16h3"/>')}공식 모아보기</button>
+    <button class="mi" id="mMix">${ic('<path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/>')}섞어 풀기</button>
+    <h4>기록</h4>
+    <button class="mi" id="mRep">${ic('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>')}학습 리포트</button>
+    <h4>화면</h4>
+    <div class="panel" style="margin-top:6px"><b style="display:block;margin-bottom:2px">글자 크기</b><span class="small">문제와 해설 글자 크기가 바뀌어요.</span>
+      <div class="seg" id="fsSeg">${[['m','보통'],['l','크게'],['xl','더 크게']].map(([k,l])=>`<button data-fs="${k}" class="${fs===k?'on':''}">${l}</button>`).join('')}</div></div>
+    <div class="panel"><b style="display:block;margin-bottom:2px">테마</b><span class="small">기본은 라이트예요.</span>
+      <div class="seg" id="thSeg">${[['light','라이트'],['dark','다크'],['auto','기기 설정']].map(([k,l])=>`<button data-th="${k}" class="${th===k?'on':''}">${l}</button>`).join('')}</div></div>
+    <h4>설정</h4>
+    <button class="mi" id="mReset">${ic('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>')}풀이 기록 지우기</button>
+  </div>`;
+  $('#mWrong').onclick = ()=>go(renderWrong);
+  $('#mSheet').onclick = ()=>go(renderSheet);
+  $('#mMix').onclick = ()=>startSession(null,'mix');
+  $('#mRep').onclick = ()=>go(renderReport);
+  $('#mReset').onclick = ()=>{ if (confirm('풀이 기록을 모두 지울까요? 되돌릴 수 없어요.')) { S = { att:{}, checks:{}, why:{}, log:[] }; save(); alert('기록을 지웠어요.'); } };
+  app.querySelectorAll('#thSeg button').forEach(b=>b.onclick=()=>{ const v=b.dataset.th; if (v==='auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme=v; try{ localStorage.setItem(KEY+'-th', v); }catch(e){} renderMore(); });
+  app.querySelectorAll('#fsSeg button').forEach(b=>b.onclick=()=>{ document.documentElement.dataset.fs = b.dataset.fs; try{ localStorage.setItem(KEY+'-fs', b.dataset.fs); }catch(e){} renderMore(); });
+}
+
+/* ========== 단원 ========== */
+function openUnit(uid, tab, focusConcept){ go(()=>renderUnit(uid, tab, focusConcept)); }
+function renderUnit(uid, tab, focusConcept){
+  const u = unitById(uid);
+  setTitle(u.name, true);
+  const tabs = [['concept','개념'],['check','개념 확인'],['practice','실전']];
+  app.innerHTML = `<div class="seg">${tabs.map(([k,l])=>`<button data-t="${k}" class="${k===tab?'on':''}">${l}</button>`).join('')}</div><div id="ucont"></div>`;
+  app.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{ stack[stack.length-1] = ()=>renderUnit(uid, b.dataset.t); renderUnit(uid, b.dataset.t); });
+  const c = $('#ucont');
+  if (tab==='concept') renderConcepts(u, c, focusConcept);
+  else if (tab==='check') renderChecks(u, c);
+  else renderPracticeList(u, c);
+  typeset(app);
+}
+function renderConcepts(u, c, focus){
+  c.innerHTML = u.concepts.map((k,i)=>`
+    <article class="concept ${focus===k.id || (!focus && i===0) ? 'open':''} ${focus===k.id?'flash':''}" id="cc-${k.id}">
+      <button aria-expanded="${focus===k.id}"><span class="k">개념 ${i+1}</span>${k.title}<span class="chev">›</span></button>
+      <div class="body">${k.body}</div>
+    </article>`).join('') + `<div class="btnrow"><button class="btn" id="toCheck">개념 확인 문제로</button></div>`;
+  c.querySelectorAll('.concept > button').forEach(b=>b.onclick=()=>{ const a=b.parentElement; a.classList.toggle('open'); b.setAttribute('aria-expanded', a.classList.contains('open')); });
+  $('#toCheck').onclick = ()=>{ stack[stack.length-1] = ()=>renderUnit(u.id,'check'); renderUnit(u.id,'check'); window.scrollTo(0,0); };
+  if (focus) setTimeout(()=>{ const el = $('#cc-'+focus); if (el) el.scrollIntoView({ block:'start', behavior:'smooth' }); }, 60);
+}
+function conceptTitle(u, cid){ const k = u.concepts.find(x=>x.id===cid); return k ? k.title : ''; }
+
+/* 개념 확인 */
+function renderChecks(u, c){
+  c.innerHTML = u.checks.map((q,i)=>`
+    <div class="panel" id="ck${i}">
+      <div class="q-meta"><span class="chip">개념 확인 ${i+1}</span><span class="chip g">${conceptTitle(u,q.c)}</span>${S.checks[u.id+':'+i]===true?'<span class="st ok">맞힘</span>':S.checks[u.id+':'+i]===false?'<span class="st no">틀림</span>':''}</div>
+      <div class="src">출처: 자체 제작 (개념 확인용)</div>
+      <div class="qtext">${q.q}</div>
+      ${q.fig||''}
+      <div class="choices">${q.ch.map((x,j)=>`<button class="choice" data-j="${j}"><span class="n">${NUM[j]}</span><span>${x}</span></button>`).join('')}</div>
+      <div class="fb"></div>
+    </div>`).join('') + `<div class="btnrow"><button class="btn" id="toPrac">실전 문제로</button></div>`;
+  u.checks.forEach((q,i)=>{
+    const box = $('#ck'+i, c);
+    box.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
+      const j = +b.dataset.j, ok = j===q.a;
+      box.querySelectorAll('.choice').forEach(x=>{ x.disabled = true; const jj=+x.dataset.j; if (jj===q.a) x.classList.add('right'); else if (jj===j) x.classList.add('wrong'); });
+      S.checks[u.id+':'+i] = ok; save();
+      const fb = $('.fb', box);
+      fb.innerHTML = ok
+        ? `<div class="result ok">정답이에요<small>한 단계 더 들어가 볼게요.</small></div><div class="sol"><h4>심화</h4>${q.deep}</div><div class="btnrow"><button class="btn line retry">다시 풀기</button></div>`
+        : `<div class="result no">아쉬워요<small>정답은 ${NUM[q.a]}. 개념을 다시 짚고 갈게요.</small></div><div class="sol"><h4>개념 복습</h4>${q.review}</div><div class="btnrow"><button class="btn ghost goC">개념 카드 다시 보기</button><button class="btn line retry">다시 풀기</button></div>`;
+      const gc = $('.goC', fb); if (gc) gc.onclick = ()=>{ stack[stack.length-1] = ()=>renderUnit(u.id,'concept',q.c); renderUnit(u.id,'concept',q.c); };
+      $('.retry', fb).onclick = ()=>{ renderUnit(u.id, 'check'); setTimeout(()=>$('#ck'+i)?.scrollIntoView({block:'start'}),50); };
+      typeset(box);
+    });
+  });
+  $('#toPrac').onclick = ()=>{ stack[stack.length-1] = ()=>renderUnit(u.id,'practice'); renderUnit(u.id,'practice'); window.scrollTo(0,0); };
+}
+
+/* 실전 목록 */
+function renderPracticeList(u, c){
+  const s = unitStats(u);
+  c.innerHTML = `
+    <div class="stat"><div><b>${s.solved}/${u.problems.length}</b><span>푼 문제</span></div><div><b>${s.acc===null?'—':Math.round(s.acc*100)+'%'}</b><span>정답률</span></div><div><b>${s.n?fmt(s.avg):'—'}</b><span>평균 시간</span></div></div>
+    <div class="btnrow" style="margin-top:0"><button class="btn" id="startAll">처음부터 풀기</button><button class="btn ghost" id="startNew">안 푼 문제만</button><button class="btn line" id="startWrong">틀린 문제만</button></div>
+    <h2 class="sec">문제 목록</h2>
+    <div class="plist">${u.problems.map(p=>{
+      const a = S.att[p.id];
+      const st = !a ? '<span class="st new">안 풂</span>' : a.last ? '<span class="st ok">맞힘</span>' : '<span class="st no">틀림</span>';
+      return `<button class="pitem" data-p="${p.id}"><span class="id">${p.id}</span><span><span>${p.tag}</span><br><span class="m">목표 ${fmt(p.t)}${a?`, ${a.n}회 풀이`:''}</span></span>${st}</button>`;
+    }).join('')}</div>`;
+  $('#startAll').onclick = ()=>startSession(u.id, 'all');
+  $('#startNew').onclick = ()=>startSession(u.id, 'new');
+  $('#startWrong').onclick = ()=>startSession(u.id, 'wrong');
+  c.querySelectorAll('.pitem').forEach(b=>b.onclick=()=>startSession(u.id, 'one', b.dataset.p));
+}
+
+/* ========== 풀이 세션 ========== */
+let SES = null;
+function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function startSession(uid, mode, one){
+  let list = [];
+  const pool = uid ? unitById(uid).problems.map(p=>p.id) : UNITS.flatMap(u=>u.problems.map(p=>p.id));
+  if (mode==='all') list = pool;
+  else if (mode==='new') list = pool.filter(id=>!S.att[id]);
+  else if (mode==='wrong') list = pool.filter(id=>S.att[id] && S.att[id].last===false);
+  else if (mode==='one') list = [one];
+  else if (mode==='mix') list = shuffle(pool.slice()).slice(0,10);
+  if (!list.length) { alert(mode==='wrong' ? '지금 다시 풀 오답이 없어요.' : '풀 문제가 없어요. 처음부터 풀기를 눌러 보세요.'); return; }
+  SES = { uid, mode, queue: list.map(id=>({ id, variant:false, retry:false })), i:0, ok:0, done:0, requeued:{}, conceptAlerted:{} };
+  go(renderSolve);
+}
+function curItem(){ return SES.queue[SES.i]; }
+function renderSolve(){
+  const it = curItem();
+  if (!it) return renderSessionEnd();
+  const { u, p } = findProblem(it.id);
+  const P = it.variant ? Object.assign({}, p, { input:undefined }, p.v, { id:p.id, t:p.t }) : p;
+  setTitle(`${SES.i+1} / ${SES.queue.length}`, true);
+  const src = it.variant ? `자체 제작 — ${p.id}번 변형 문제` : p.src;
+  app.innerHTML = `
+    <div class="progress"><i style="width:${SES.i/SES.queue.length*100}%"></i></div>
+    <div class="q-meta">
+      <span class="chip">${u.name}</span><span class="chip g">${p.tag}</span>
+      ${it.variant?'<span class="chip r">변형 문제</span>':''}${it.retry?'<span class="chip r">다시 풀기</span>':''}
+    </div>
+    <div class="src">출처: ${src}</div>
+    <div class="timer" id="tmr">
+      <svg viewBox="0 0 46 46"><circle class="trk" cx="23" cy="23" r="19" fill="none" stroke-width="5"/><circle class="arc" id="arc" cx="23" cy="23" r="19" fill="none" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="119.4"/></svg>
+      <div><div class="tt" id="tt">0:00</div><div class="tg">목표 ${fmt(P.t)}</div></div>
+      <button class="btn line pz" id="hintBtn">힌트</button>
+    </div>
+    <div class="qtext">${P.q}</div>
+    ${P.qfig||''}
+    <div id="ans">${P.input!==undefined
+      ? `<div class="inputrow"><input id="inp" inputmode="decimal" placeholder="답 입력" aria-label="답 입력"><button class="btn" id="sub">제출</button></div>`
+      : `<div class="choices">${P.ch.map((x,j)=>`<button class="choice" data-j="${j}"><span class="n">${NUM[j]}</span><span>${x}</span></button>`).join('')}</div>`}
+    </div>
+    <div id="hint"></div>
+    <div id="after"></div>`;
+  const t0 = Date.now(); let paused = 0;
+  const tick = ()=>{
+    const sec = (Date.now()-t0)/1000;
+    $('#tt').textContent = fmt(sec);
+    const r = Math.min(1, sec/P.t);
+    $('#arc').style.strokeDashoffset = 119.4*(1-r);
+    $('#tmr').classList.toggle('over', sec > P.t);
+  };
+  tickTimer = setInterval(tick, 1000); tick();
+  $('#hintBtn').onclick = ()=>{ $('#hint').innerHTML = `<div class="tip"><b>힌트</b>${P.hint}</div>`; $('#hintBtn').disabled = true; typeset($('#hint')); };
+  const finish = (ok, chosen)=>{
+    stopTick();
+    const sec = (Date.now()-t0)/1000;
+    record(p.id, it.variant, ok, sec);
+    SES.done++; if (ok) SES.ok++;
+    showAfter(u, p, P, it, ok, sec, chosen);
+    if (ok) sparkle();
+  };
+  if (P.input!==undefined) {
+    const sub = ()=>{ const v = $('#inp').value.trim().replace(/\s/g,''); if (!v) return; $('#inp').disabled = true; $('#sub').disabled = true; finish(v===String(P.input), v); };
+    $('#sub').onclick = sub; $('#inp').onkeydown = e=>{ if (e.key==='Enter') sub(); };
+  } else {
+    app.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
+      const j = +b.dataset.j;
+      app.querySelectorAll('.choice').forEach(x=>{ x.disabled = true; const jj=+x.dataset.j; if (jj===P.a) x.classList.add('right'); else if (jj===j) x.classList.add('wrong'); });
+      finish(j===P.a, j);
+    });
+  }
+  typeset(app);
+}
+function showAfter(u, p, P, it, ok, sec, chosen){
+  const over = sec > P.t;
+  const ansText = P.input!==undefined ? P.input : NUM[P.a];
+  const af = $('#after');
+  let html = ok
+    ? `<div class="result ok">정답 (${fmt(sec)})<small>${over ? `목표 시간 ${fmt(P.t)}을 넘겼어요. 해설에서 더 짧은 길을 확인하세요.` : '목표 시간 안에 풀었어요.'}</small></div>`
+    : `<div class="result no">오답 (${fmt(sec)})<small>정답은 ${ansText}${P.input!==undefined?` (입력한 답: ${esc(chosen)})`:''}</small></div>`;
+  if (!ok) {
+    html += `<div class="why"><p>어디서 틀렸나요? 고르면 리포트의 훈수에 반영돼요.</p><div class="opts">${WHY.map(w=>`<button data-w="${w}">${w}</button>`).join('')}</div></div>`;
+  }
+  html += `<div class="sol"><h4>풀이</h4>${P.sol}</div>`;
+  html += `<div id="cAlert"></div><div class="btnrow" id="nav"></div>`;
+  af.innerHTML = html;
+
+  // 같은 개념에서 반복해서 틀리면 개념 복습 권장
+  const cw = conceptWrongCount(u, p.c);
+  const needConcept = !ok && (cw >= 2 || over && sec > P.t*2);
+  const showConcept = ()=>{
+    $('#cAlert').innerHTML = `<div class="alert"><b>개념 복습을 먼저 권해요</b>'${conceptTitle(u,p.c)}'에서 ${cw>=2?`벌써 ${cw}번 틀렸어요`:'시간이 목표의 두 배를 넘겼어요'}. 문제를 더 푸는 것보다 개념 카드를 다시 보는 게 빨라요.<div class="btnrow"><button class="btn ghost" id="goConcept">개념 카드 보기</button></div></div>`;
+    $('#goConcept').onclick = ()=>{ stopTick(); stack.push(()=>renderUnit(u.id,'concept',p.c)); renderUnit(u.id,'concept',p.c); };
+  };
+  if (needConcept) showConcept();
+
+  af.querySelectorAll('.why button').forEach(b=>b.onclick=()=>{
+    b.classList.toggle('on');
+    const sel = [...af.querySelectorAll('.why button.on')].map(x=>x.dataset.w);
+    S.why[p.id] = sel; save();
+    if (sel.includes('개념을 몰랐다')) showConcept();
+  });
+
+  // 오답이면 변형 문제 → 그리고 원래 문제를 뒤에 다시
+  const nav = $('#nav');
+  if (!ok && !it.variant) {
+    nav.innerHTML = `<button class="btn warnb" id="toVar">변형 문제 풀기</button><button class="btn line" id="next">다음 문제</button>`;
+    $('#toVar').onclick = ()=>{ SES.queue.splice(SES.i+1, 0, { id:p.id, variant:true, retry:false }); requeue(p.id); SES.i++; renderSolve(); window.scrollTo(0,0); };
+    $('#next').onclick = ()=>{ requeue(p.id); SES.i++; renderSolve(); window.scrollTo(0,0); };
+  } else {
+    nav.innerHTML = `<button class="btn" id="next">${SES.i+1 >= SES.queue.length ? '결과 보기' : '다음 문제'}</button>`;
+    $('#next').onclick = ()=>{ if (!ok && it.variant) requeue(p.id, true); SES.i++; renderSolve(); window.scrollTo(0,0); };
+  }
+  typeset(af);
+  af.scrollIntoView({ block:'start', behavior:'smooth' });
+}
+function sparkle(){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const r = document.querySelector('.choice.right, #after .result')?.getBoundingClientRect(); if (!r) return;
+  const cx = r.left + r.width/2, cy = r.top + r.height/2, cols = ['#7452F7','#A06DFF','#FFC94D','#4FD1A5','#FF7AB6'];
+  for (let i=0;i<18;i++){ const s=document.createElement('i'); s.className='spark'; const a=Math.random()*Math.PI*2, d=40+Math.random()*70;
+    s.style.left=cx+'px'; s.style.top=cy+'px'; s.style.background=cols[i%5]; s.style.setProperty('--dx',Math.cos(a)*d+'px'); s.style.setProperty('--dy',Math.sin(a)*d+'px');
+    document.body.appendChild(s); setTimeout(()=>s.remove(),850); }
+}
+function requeue(pid, asVariant){
+  const k = pid + (asVariant?'v':'');
+  if (SES.requeued[k]) return; SES.requeued[k] = true;
+  const pos = Math.min(SES.queue.length, SES.i + 3);
+  SES.queue.splice(pos, 0, { id:pid, variant:!!asVariant, retry:true });
+}
+function renderSessionEnd(){
+  setTitle('결과', true);
+  const pct = SES.done ? Math.round(SES.ok/SES.done*100) : 0;
+  const u = SES.uid ? unitById(SES.uid) : null;
+  const adv = u ? advice(u) : (pct < 60 ? ['섞어 풀기 정답률이 낮아요. 리포트에서 가장 약한 단원을 골라 개념부터 다시 보세요.'] : ['좋아요. 리포트에서 단원별 시간도 함께 확인하세요.']);
+  app.innerHTML = `
+    <div class="panel" style="margin-top:20px">
+      <div class="stat" style="margin:0"><div><b>${SES.ok}/${SES.done}</b><span>맞힌 문제</span></div><div><b>${pct}%</b><span>정답률</span></div><div><b>${SES.queue.filter(q=>q.retry).length}</b><span>다시 푼 문제</span></div></div>
+    </div>
+    <div class="todo"><b>훈수</b>${adv.map(a=>`<p style="margin:6px 0">${a}</p>`).join('')}</div>
+    <div class="btnrow"><button class="btn" id="home2">홈으로</button>${u?`<button class="btn ghost" id="again">이 단원 오답만 다시</button>`:''}</div>`;
+  $('#home2').onclick = ()=>{ stack=[]; go(renderHome); };
+  if (u) $('#again').onclick = ()=>startSession(u.id, 'wrong');
+}
+
+/* ========== 오답노트 ========== */
+function renderWrong(){
+  setTitle('복습', stack.length>1); if(stack.length<=1) document.querySelector('.fab')?.remove();
+  const items = [];
+  UNITS.forEach(u=>u.problems.forEach(p=>{ const a=S.att[p.id]; if (a && a.n-a.ok>0) items.push({u,p,a}); }));
+  if (!items.length) { app.innerHTML = `<section class="phead"><h2>복습</h2><p>틀린 문제는 다시 맞힐 때까지 여기 남아요</p></section><div class="empty"><b>아직 틀린 문제가 없어요</b><p>실전 문제를 풀면 틀린 문제가 여기 모여요.</p><button class="btn" id="g">문제 풀러 가기</button></div>`; $('#g').onclick=()=>{ setTab('home'); stack=[]; go(renderHome); }; return; }
+  const still = items.filter(x=>x.a.last===false);
+  app.innerHTML = `<section class="phead"><h2>복습</h2><p>틀린 문제는 다시 맞힐 때까지 여기 남아요</p></section>
+    <div class="btnrow" style="margin-top:0"><button class="btn" id="rw">아직 못 맞힌 ${still.length}문제 다시 풀기</button></div>
+    <h2 class="sec">틀린 적 있는 문제</h2>
+    <div class="plist">${items.map(({u,p,a})=>`<button class="pitem" data-p="${p.id}" data-u="${u.id}"><span class="id">${p.id}</span><span><span>${u.name}, ${p.tag}</span><br><span class="m">${a.n-a.ok}번 틀림${S.why[p.id]&&S.why[p.id].length?`, 이유: ${S.why[p.id].join(', ')}`:''}</span></span>${a.last?'<span class="st ok">극복</span>':'<span class="st no">미해결</span>'}</button>`).join('')}</div>`;
+  $('#rw').onclick = ()=>startSession(null,'wrong');
+  if (!still.length) $('#rw').disabled = true;
+  app.querySelectorAll('.pitem').forEach(b=>b.onclick=()=>startSession(b.dataset.u,'one',b.dataset.p));
+}
+
+/* ========== 리포트 ========== */
+function renderReport(){
+  setTitle('학습 리포트', stack.length>1); document.querySelector('.fab')?.remove();
+  let N=0, OK=0, T=0;
+  UNITS.forEach(u=>{ const s=unitStats(u); N+=s.n; OK+=s.ok; T+=s.avg*s.n; });
+  const whyAll = {};
+  Object.values(S.why).forEach(arr=>arr.forEach(w=>whyAll[w]=(whyAll[w]||0)+1));
+  const whyTot = Object.values(whyAll).reduce((a,b)=>a+b,0);
+  app.innerHTML = `<section class="phead"><h2>코치</h2><p>푼 기록을 보고 단원별로 훈수를 둬요</p></section>
+    <div class="stat"><div><b>${N}</b><span>총 풀이</span></div><div><b>${N?Math.round(OK/N*100)+'%':'—'}</b><span>전체 정답률</span></div><div><b>${N?fmt(T/N):'—'}</b><span>평균 시간</span></div></div>
+    <h2 class="sec">단원별 진단과 훈수</h2>
+    <div class="panel">${UNITS.map(u=>{
+      const s = unitStats(u); const pct = s.acc===null?0:Math.round(s.acc*100);
+      const col = s.acc===null ? 'var(--line)' : s.acc<.5 ? 'var(--bad)' : s.acc<.8 ? 'var(--gold)' : 'var(--ok)';
+      return `<div class="rrow"><div class="h"><span>${u.name}</span><span>${s.acc===null?'기록 없음':pct+'%'}${s.n?`, 평균 ${fmt(s.avg)}`:''}</span></div>
+        <div class="bars"><i style="width:${pct}%;background:${col}"></i></div>
+        <div class="adv">${advice(u).join(' ')}</div></div>`;
+    }).join('')}</div>
+    <h2 class="sec">틀린 이유</h2>
+    <div class="panel">${whyTot ? WHY.map(w=>{ const n=whyAll[w]||0; return `<div class="rrow"><div class="h"><span>${w}</span><span>${n}번</span></div><div class="bars"><i style="width:${n/whyTot*100}%;background:var(--bad)"></i></div></div>`; }).join('') : '<p class="small" style="margin:0">틀린 문제에서 이유를 고르면 여기에 모여요.</p>'}</div>
+    <div class="btnrow"><button class="btn line" id="reset">기록 전체 지우기</button></div>`;
+  $('#reset').onclick = ()=>{ if (confirm('풀이 기록을 모두 지울까요? 되돌릴 수 없어요.')) { S = { att:{}, checks:{}, why:{}, log:[] }; save(); renderReport(); } };
+}
+
+/* ========== 공식 ========== */
+function renderSheet(){
+  setTitle('공식 모아보기', true);
+  app.innerHTML = `<section class="phead"><h2>공식 모아보기</h2><p>시험 직전에 한 번 훑기</p></section>` + UNITS.map(u=>`<h2 class="sec">${u.name}</h2><div class="formula">${u.sheet.map(([t,f])=>`<div class="f"><b>${t}</b><div class="fx">${f}</div></div>`).join('')}</div>`).join('');
+  typeset(app);
+}
+
+function renderOnboard(i=0){
+  setTitle('', false); document.querySelector('.fab')?.remove();
+  const ic = d=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const steps = [
+    [ic('<path d="M4 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H4z"/><path d="M20 5h-4a2 2 0 0 0-2 2"/>'),'개념부터','단원마다 개념을 먼저 정리하고, 바로 확인 문제로 이해했는지 체크해요.'],
+    [ic('<path d="M15 4l5 5L9 20H4v-5z"/>'),'실전 문제 풀기','교재 문제를 시간 재며 풀어요. 틀리면 상세 풀이와 변형 문제가 바로 나와요.'],
+    [ic('<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>'),'복습하고 코치 받기','틀린 문제는 복습 탭에 모이고, 코치가 오답 패턴을 보고 훈수를 둬요.']
+  ];
+  const [svg,t,d] = steps[i];
+  app.innerHTML = `<section class="phead"><h2>반가워요 👋</h2><p>Proof는 이렇게 써요.</p></section>
+  <div class="onb"><div class="oc"><div class="oi">${svg}</div><span class="step">${i+1} / 3</span><h3>${t}</h3><p>${d}</p></div>
+  <div class="dots">${steps.map((_,j)=>`<i class="${j===i?'on':''}"></i>`).join('')}</div>
+  <div class="obtn"><button class="btn line" id="oPrev" ${i===0?'disabled':''}>이전</button><button class="btn" id="oNext">${i===2?'시작하기':'다음'}</button></div></div>`;
+  $('#oPrev').onclick = ()=>{ renderOnboard(i-1); anim('enter-r'); };
+  $('#oNext').onclick = ()=>{ if (i<2) { renderOnboard(i+1); anim('enter-l'); } else { try{ localStorage.setItem(KEY+'-onb','1'); }catch(e){} stack=[renderHome]; renderHome(); anim('enter-up'); } };
+}
+let seenOnb = false; try { seenOnb = !!localStorage.getItem(KEY+'-onb'); } catch(e) {}
+if (seenOnb) { stack = [renderHome]; renderHome(); } else { stack = [()=>renderOnboard(0)]; renderOnboard(0); }
+setTimeout(()=>{ $('#splash').classList.add('hide'); anim('enter-up'); setTimeout(()=>$('#splash')?.remove(), 500); }, 1150);
+</script>
+<script>
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+</script>
+</body>
+</html>
