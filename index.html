@@ -394,6 +394,14 @@ mjx-container[display="true"]{ display:block; text-align:left !important; paddin
 mjx-container svg{ max-width:none; }
 mjx-container[display="true"]{ margin:8px 0 !important; }
 @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+
+/* in-app toast & confirm */
+#toast{ position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom,0px)); transform:translate(-50%,12px); z-index:60; max-width:min(440px,calc(100% - 40px)); padding:13px 22px; border-radius:16px; background:var(--ink); color:var(--bg); font-weight:600; font-size:.95rem; line-height:1.45; text-align:center; box-shadow:0 12px 28px -10px rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:opacity .22s ease, transform .22s ease; }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+.dlg-back{ position:fixed; inset:0; z-index:70; background:rgba(10,10,20,.5); display:flex; align-items:center; justify-content:center; padding:20px; }
+.dlg{ width:min(380px,100%); background:var(--surface); color:var(--ink); border-radius:24px; padding:26px 22px 20px; box-shadow:0 24px 48px -16px rgba(0,0,0,.5); }
+.dlg p{ margin:0 0 20px; font-weight:600; line-height:1.55; white-space:pre-line; }
+.dlg .btnrow{ margin-top:0; justify-content:flex-end; }
 </style>
 </head>
 <body>
@@ -404,6 +412,7 @@ mjx-container[display="true"]{ margin:8px 0 !important; }
   <span class="dday"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span id="dday"></span></span>
 </div></header>
 <div id="splash"><div class="glow"><span class="logo">Proof</span></div><div class="lbar"><i></i></div><p>불러오는 중...</p></div>
+<div id="toast" role="status" aria-live="polite"></div>
 <main class="wrap" id="app"></main>
 <nav class="tabs"><div class="in">
   <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9H4z"/></svg>홈</button>
@@ -2440,6 +2449,19 @@ try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} }
 
 const $ = (s, el=document) => el.querySelector(s);
+let _toastT;
+function toast(msg){ const el = document.getElementById('toast'); if (!el) return; el.textContent = msg; el.classList.add('show'); clearTimeout(_toastT); _toastT = setTimeout(()=>el.classList.remove('show'), 2400); }
+function askConfirm(msg, onYes, yesLabel){
+  const back = document.createElement('div'); back.className = 'dlg-back';
+  back.innerHTML = '<div class="dlg" role="dialog" aria-modal="true"><p></p><div class="btnrow"><button class="btn line" data-r="0">취소</button><button class="btn" data-r="1"></button></div></div>';
+  back.querySelector('p').textContent = msg;
+  back.querySelector('[data-r="1"]').textContent = yesLabel || '확인';
+  const close = ()=>back.remove();
+  back.onclick = e => { if (e.target === back) close(); };
+  back.querySelector('[data-r="0"]').onclick = close;
+  back.querySelector('[data-r="1"]').onclick = ()=>{ close(); onYes(); };
+  document.body.appendChild(back);
+}
 const app = $('#app');
 const NUM = ['①','②','③','④','⑤'];
 const WHY = ['개념을 몰랐다','공식·성질이 헷갈렸다','문제 해석을 잘못했다','계산 실수','시간이 부족했다'];
@@ -2803,7 +2825,7 @@ function renderMore(){
   $('#mQuest').onclick = ()=>go(renderQuests);
   $('#mTime').onclick = ()=>go(()=>renderStudy('timer'));
   $('#mExp').onclick = ()=>go(renderExp);
-  $('#mReset').onclick = ()=>{ if (confirm('풀이 기록을 모두 지울까요? 되돌릴 수 없어요.')) { S = { att:{}, checks:{}, why:{}, log:[], clog:[], study:[], exps:[], srs:{}, reports:[], cnt:0 }; save(); alert('기록을 지웠어요.'); } };
+  $('#mReset').onclick = ()=>askConfirm('풀이 기록을 모두 지울까요?\n되돌릴 수 없어요.', ()=>{ S = { att:{}, checks:{}, why:{}, log:[], clog:[], study:[], exps:[], srs:{}, reports:[], cnt:0 }; save(); toast('기록을 지웠어요.'); }, '지우기');
   app.querySelectorAll('#thSeg button').forEach(b=>b.onclick=()=>{ const v=b.dataset.th; if (v==='auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme=v; try{ localStorage.setItem(KEY+'-th', v); }catch(e){} renderMore(); });
   app.querySelectorAll('#fsSeg button').forEach(b=>b.onclick=()=>{ document.documentElement.dataset.fs = b.dataset.fs; try{ localStorage.setItem(KEY+'-fs', b.dataset.fs); }catch(e){} renderMore(); });
 }
@@ -2894,7 +2916,7 @@ function startSession(uid, mode, one){
   else if (mode==='mix') list = shuffle(pool.slice()).slice(0,10);
   else if (mode==='due') list = dueList(Date.now()).filter(id=>pool.includes(id));
   else if (mode==='list') list = (one||[]).slice();
-  if (!list.length) { alert(mode==='wrong'||mode==='due' ? '지금 다시 풀 문제가 없어요.' : '풀 문제가 없어요. 처음부터 풀기를 눌러 보세요.'); return; }
+  if (!list.length) { toast(mode==='wrong'||mode==='due' ? '지금 다시 풀 문제가 없어요.' : '풀 문제가 없어요. 처음부터 풀기를 눌러 보세요.'); return; }
   SES = { uid, mode, queue: list.map(id=>({ id, variant:false, retry:false })), i:0, ok:0, done:0, requeued:{}, conceptAlerted:{} };
   go(renderSolve);
 }
@@ -3079,7 +3101,7 @@ function renderReport(){
     <div class="panel">${whyTot ? WHY.map(w=>{ const n=whyAll[w]||0; return `<div class="rrow"><div class="h"><span>${w}</span><span>${n}번</span></div><div class="bars"><i style="width:${n/whyTot*100}%;background:var(--bad)"></i></div></div>`; }).join('') : '<p class="small" style="margin:0">틀린 문제에서 이유를 고르면 여기에 모여요.</p>'}</div>
     <div class="btnrow"><button class="btn line" id="reset">기록 전체 지우기</button></div>`;
   bindCoachTop();
-  $('#reset').onclick = ()=>{ if (confirm('풀이 기록을 모두 지울까요? 되돌릴 수 없어요.')) { S = { att:{}, checks:{}, why:{}, log:[], clog:[], study:[], exps:[], srs:{}, reports:[], cnt:0 }; save(); renderReport(); } };
+  $('#reset').onclick = ()=>askConfirm('풀이 기록을 모두 지울까요?\n되돌릴 수 없어요.', ()=>{ S = { att:{}, checks:{}, why:{}, log:[], clog:[], study:[], exps:[], srs:{}, reports:[], cnt:0 }; save(); renderReport(); toast('기록을 지웠어요.'); }, '지우기');
 }
 
 /* ========== 공식 ========== */
