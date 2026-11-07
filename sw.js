@@ -1,5 +1,5 @@
 // Proof 오프라인 캐시. 앱을 고치면 VERSION 숫자만 올리면 돼요.
-const VERSION = 'proof-v2';
+const VERSION = 'proof-v9';
 const SHELL = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
