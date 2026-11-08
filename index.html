@@ -384,20 +384,6 @@ html, body{ overflow-x:hidden; }
 .srsbadge{ font-size:.72rem; font-weight:700; color:var(--teal); background:var(--mintSoft); border-radius:10px; padding:2px 8px; margin-left:6px; }
 .choices.figs{ grid-template-columns:1fr 1fr; }
 .choice svg{ max-width:100%; height:auto; }
-.selfbox textarea{ width:100%; min-height:140px; font:inherit; padding:14px 16px; border-radius:16px; border:1.5px solid var(--line); background:var(--surface); color:var(--ink); resize:vertical; }
-.rubric{ margin:14px 0 0; padding:0; list-style:none; display:grid; gap:8px; }
-.rubric li{ display:flex; gap:10px; align-items:flex-start; background:var(--soft); border-radius:14px; padding:10px 14px; }
-.rubric li::before{ content:""; flex:none; width:16px; height:16px; margin-top:4px; border-radius:5px; border:2px solid var(--mint); }
-.chip.s{ background:var(--goldSoft); color:var(--gold); }
-.pad{ display:block; width:100%; height:340px; background:var(--surface); border:1.5px solid var(--line); border-radius:18px; touch-action:none; background-image:linear-gradient(var(--soft) 1px, transparent 1px); background-size:100% 34px; }
-.padtools{ display:flex; gap:8px; margin:0 0 10px; flex-wrap:wrap; } .padtools .btn{ padding:9px 16px; font-size:.88rem; }
-.sol b.kw{ font-weight:800; color:var(--ink); background:linear-gradient(transparent 62%, var(--tile) 62%); padding:0 2px; }
-.body h4.dh{ font-size:1rem; color:var(--teal); margin:26px 2px 10px; padding-top:14px; border-top:1px dashed var(--line); }
-.mtable{ overflow-x:auto; margin:6px 0 10px 18px; }
-.mtable table{ border-collapse:collapse; font-size:.95rem; }
-.mtable th, .mtable td{ border:1px solid var(--line); padding:8px 14px; text-align:center; }
-.mtable th{ background:var(--soft); color:var(--ink2); font-weight:600; }
-.mtable td{ background:var(--surface); }
 .sum{ display:flex; gap:10px; align-items:baseline; background:linear-gradient(90deg,var(--mintSoft),transparent); border-radius:14px; padding:12px 16px; margin:20px 0 0; font-weight:600; }
 .sum b{ flex:none; font-size:.78rem; color:#fff; background:var(--mint); border-radius:20px; padding:2px 10px; }
 .body > p > b:only-child{ color:var(--ink); }
@@ -408,6 +394,14 @@ mjx-container[display="true"]{ display:block; text-align:left !important; paddin
 mjx-container svg{ max-width:none; }
 mjx-container[display="true"]{ margin:8px 0 !important; }
 @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+
+/* in-app toast & confirm */
+#toast{ position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom,0px)); transform:translate(-50%,12px); z-index:60; max-width:min(440px,calc(100% - 40px)); padding:13px 22px; border-radius:16px; background:var(--ink); color:var(--bg); font-weight:600; font-size:.95rem; line-height:1.45; text-align:center; box-shadow:0 12px 28px -10px rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:opacity .22s ease, transform .22s ease; }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+.dlg-back{ position:fixed; inset:0; z-index:70; background:rgba(10,10,20,.5); display:flex; align-items:center; justify-content:center; padding:20px; }
+.dlg{ width:min(380px,100%); background:var(--surface); color:var(--ink); border-radius:24px; padding:26px 22px 20px; box-shadow:0 24px 48px -16px rgba(0,0,0,.5); }
+.dlg p{ margin:0 0 20px; font-weight:600; line-height:1.55; white-space:pre-line; }
+.dlg .btnrow{ margin-top:0; justify-content:flex-end; }
 </style>
 </head>
 <body>
@@ -418,6 +412,7 @@ mjx-container[display="true"]{ margin:8px 0 !important; }
   <span class="dday"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span id="dday"></span></span>
 </div></header>
 <div id="splash"><div class="glow"><span class="logo">Proof</span></div><div class="lbar"><i></i></div><p>불러오는 중...</p></div>
+<div id="toast" role="status" aria-live="polite"></div>
 <main class="wrap" id="app"></main>
 <nav class="tabs"><div class="in">
   <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9H4z"/></svg>홈</button>
@@ -1497,120 +1492,6 @@ ${SUM(R`시작점이랑 접할 때, 이 두 순간이 경계.`)}`},
 ],
 };
 UNITS.forEach(u=>{ if (NEWC[u.id]) u.concepts = NEWC[u.id]; });
-/* ===== 자세한 설명으로 교체 ===== */
-const STEP = (n, t)=>`<div class="step"><b>${n}단계</b> ${t}</div>`;
-const DETAIL = {
-ineq:{
-c3: R`
-${RC(R`바로 앞 개념(산술·기하)의 응용이에요. 시험에서는 \(a+b\ge2\sqrt{ab}\)를 바로 쓸 수 있게 안 주고, 살짝 꼬아서 줘요. 꼬인 걸 푸는 기술은 딱 두 개예요.`)}
-<p><b>먼저, 왜 꼬였다고 하냐면</b></p>
-<p>산술·기하로 최솟값이 ‘숫자’로 나오려면, 두 수를 <b>곱했을 때 문자가 사라져서 상수</b>가 돼야 해요. \(x+\dfrac9x\)는 곱하면 9라서 바로 되죠. 그런데 시험 문제는 곱해도 문자가 남게 줘요. 그걸 상수로 만드는 게 기술이에요.</p>
-
-<h4 class="dh">기술 1. 쪼개서 상수 만들기</h4>
-<p>문제: \(x>1\)일 때 \(x+\dfrac{4}{x-1}\)의 최솟값은?</p>
-${STEP(1,R`그냥 곱하면 \(x\cdot\dfrac{4}{x-1}=\dfrac{4x}{x-1}\). 문자가 남아서 상수가 아니에요. 바로 못 써요.`)}
-${STEP(2,R`분모에 \(x-1\)이 있으니까, 앞의 \(x\)도 \(x-1\) 모양으로 맞춰요. \(x=(x-1)+1\)로 쪼개면<br>\(x+\dfrac{4}{x-1}=(x-1)+\dfrac{4}{x-1}+1\)`)}
-${STEP(3,R`이제 \((x-1)\)과 \(\dfrac{4}{x-1}\)은 곱하면 4, 상수예요. 그리고 \(x>1\)이라 \(x-1>0\), 둘 다 양수라서 산술·기하를 쓸 수 있어요.<br>\((x-1)+\dfrac{4}{x-1}\ge2\sqrt4=4\)`)}
-${STEP(4,R`남은 \(+1\)을 붙이면 전체는 \(4+1=5\) 이상.`)}
-${STEP(5,R`등호 확인: \(x-1=\dfrac4{x-1}\) → \((x-1)^2=4\) → \(x-1=2\) → \(x=3\). \(x>1\) 안에 있으니 최솟값은 진짜로 5예요.`)}
-
-<h4 class="dh">기술 2. 조건식을 곱해서 펼치기</h4>
-<p>문제: 양수 \(x, y\)에 대하여 \(x+2y=4\)일 때, \(\dfrac1x+\dfrac2y\)의 최솟값은?</p>
-${STEP(1,R`<b>왜 바로 못 쓰냐면</b>: \(\dfrac1x\times\dfrac2y=\dfrac{2}{xy}\). 곱해도 \(xy\)가 남아요. 상수가 아니죠.`)}
-${STEP(2,R`<b>아이디어</b>: 문제에 \(x+2y=4\)라는 ‘값을 아는 식’이 있어요. 이걸 곱해 주면 분모의 \(x, y\)를 지워 줄 수 있어요. 그래서 일부러 \(\left(\dfrac1x+\dfrac2y\right)(x+2y)\)를 만들어요.`)}
-${STEP(3,R`<b>4칸으로 하나씩 곱하기</b> (괄호 2개 × 2개 = 4번):`)}
-<div class="mtable"><table><tr><th>×</th><th>\(x\)</th><th>\(2y\)</th></tr><tr><th>\(\dfrac1x\)</th><td>\(1\)</td><td>\(\dfrac{2y}{x}\)</td></tr><tr><th>\(\dfrac2y\)</th><td>\(\dfrac{2x}{y}\)</td><td>\(4\)</td></tr></table></div>
-<p style="padding-left:4px">숫자끼리 더하면 \(1+4=5\). 그래서 \(\left(\dfrac1x+\dfrac2y\right)(x+2y)=5+\dfrac{2y}{x}+\dfrac{2x}{y}\).</p>
-${STEP(4,R`<b>이제 산술·기하</b>: \(\dfrac{2y}x\times\dfrac{2x}y=4\). 드디어 상수! 둘 다 양수라서<br>\(\dfrac{2y}{x}+\dfrac{2x}{y}\ge2\sqrt4=4\)<br>그래서 전체 \(\left(\dfrac1x+\dfrac2y\right)(x+2y)\ge5+4=9\).`)}
-${STEP(5,R`<b>조건 대입</b>: \(x+2y=4\)이니까 \(4\times\left(\dfrac1x+\dfrac2y\right)\ge9\) → \(\dfrac1x+\dfrac2y\ge\dfrac94\).`)}
-${STEP(6,R`<b>등호 확인</b>: \(\dfrac{2y}{x}=\dfrac{2x}{y}\) → \(x^2=y^2\) → \(x=y\) (양수). \(x+2y=4\)에 넣으면 \(3x=4\), \(x=y=\dfrac43\).<br>검산: \(\dfrac34+\dfrac{3}{2}=\dfrac94\) ✔. 최솟값 \(\dfrac94\).`)}
-<div class="tip"><b>언제 기술 2를 꺼내나</b>조건이 ‘\(\square+\square=\)숫자’이고, 구하는 게 ‘분수 + 분수’일 때 (또는 그 반대). 조건식을 통째로 곱하면 돼요.</div>
-
-<div class="warn"><b>함정: 산술·기하를 따로 두 번 쓰면 틀려요</b>같은 문제를 이렇게 풀면 안 돼요.<br>① \(x+2y\ge2\sqrt{2xy}\) (등호: \(x=2y\))<br>② \(\dfrac1x+\dfrac2y\ge2\sqrt{\dfrac2{xy}}\) (등호: \(y=2x\))<br>둘을 곱하면 \(4\left(\dfrac1x+\dfrac2y\right)\ge8\) → 최솟값 2?<br>그런데 ①의 등호(\(x=2y\))와 ②의 등호(\(y=2x\))는 동시에 될 수 없어요 (둘 다 성립하려면 \(x=y=0\)). 그래서 2는 실제로 나올 수 없는 값이에요. 진짜 최솟값은 \(\dfrac94\).<br><b>결론</b>: 산술·기하는 한 번만, 그것도 등호가 실제로 되는지 꼭 확인!</div>
-${SUM(R`곱했을 때 문자가 사라지게 쪼개거나(기술 1), 값을 아는 식을 곱해서 펼친다(기술 2). 마지막엔 등호 확인.`)}`,
-c4: R`
-${RC(R`이건 진짜 처음 보는 공식이에요. 근데 겁먹을 필요 없어요. 모양만 외우면 대입이 끝이에요.`)}
-<div class="key"><b>공식 모양</b>(제곱의 합) × (제곱의 합) ≥ (짝끼리 곱해서 더한 것)\(^2\)<br>\((a^2+b^2)(x^2+y^2)\ge(ax+by)^2\)<br>등호는 \(\dfrac{x}{a}=\dfrac{y}{b}\)일 때 (짝끼리 비율이 같을 때)</div>
-<p><b>짝 맞추는 법</b>: 왼쪽 첫 괄호의 \(a\)와 둘째 괄호의 \(x\)가 짝, \(b\)와 \(y\)가 짝이에요. 짝끼리 곱해서 더한 게 오른쪽.</p>
-<h4 class="dh">예제: \(x^2+y^2=5\)일 때 \(x+2y\)의 최댓값</h4>
-${STEP(1,R`구하는 식 \(x+2y=1\cdot x+2\cdot y\). 그래서 짝은 \((1, x)\), \((2, y)\).`)}
-${STEP(2,R`공식에 넣기: \((1^2+2^2)(x^2+y^2)\ge(1\cdot x+2\cdot y)^2\).`)}
-${STEP(3,R`아는 값 넣기: \(5\times5\ge(x+2y)^2\) → \((x+2y)^2\le25\) → \(-5\le x+2y\le5\).`)}
-${STEP(4,R`등호 확인: \(\dfrac x1=\dfrac y2\) → \(y=2x\). \(x^2+4x^2=5\) → \(x=1, y=2\). 그때 \(x+2y=5\) ✔. 최댓값 5.`)}
-<div class="tip"><b>계수 맞추기 요령</b>\(4x^2+y^2+9z^2\)처럼 계수가 붙어 있으면 \((2x)^2+y^2+(3z)^2\)로 보고, 구하는 식도 \(2x, y, 3z\)로 다시 써요. 예) \(4x+y+3z=2\cdot(2x)+1\cdot y+1\cdot(3z)\) → 짝은 2, 1, 1.</div>
-${SUM(R`제곱합 × 제곱합 ≥ (짝곱의 합)². 짝을 먼저 정하고, 등호(비율 같음)로 확인.`)}`
-},
-prop:{
-c3: R`
-${RC(R`공통수학1 이차부등식에서 ‘모든 실수 \(x\)에 대하여 성립할 조건’ 문제 풀었죠? 그때 판별식 \(D<0\) 쓴 거, 그게 바로 이 개념이에요.`)}
-<p><b>교실로 생각해 보세요</b></p>
-<ul><li>‘우리 반 <b>모든</b> 학생은 휴대폰이 있다’ → 한 명이라도 없으면 거짓.</li><li>‘우리 반 <b>어떤</b> 학생은 안경을 쓴다’ → 딱 한 명만 써도 참.</li></ul>
-<div class="key"><b>집합으로 말하면</b>‘모든 \(x\)에 대하여 \(p\)’는 \(P=U\)일 때 참 (전부 다 만족)<br>‘어떤 \(x\)에 대하여 \(p\)’는 \(P\ne\varnothing\)일 때 참 (하나라도 있으면)</div>
-<p><b>부정하는 법</b>: ‘모든’ ↔ ‘어떤’을 바꾸고, 뒤의 조건도 부정해요. ‘모든 학생이 휴대폰이 있다’의 부정은 ‘휴대폰이 <b>없는</b> 학생이 <b>있다</b>’예요.</p>
-<h4 class="dh">이차식이 나오면 판별식으로 (시험 단골)</h4>
-<p>예제: ‘모든 실수 \(x\)에 대하여 \(x^2-2kx+9>0\)’이 참이 되는 \(k\)의 범위는?</p>
-${STEP(1,R`\(y=x^2-2kx+9\)는 아래로 볼록한 포물선. ‘모든 \(x\)에서 0보다 크다’ = 포물선 전체가 \(x\)축 <b>위에</b> 떠 있다.`)}
-${STEP(2,R`\(x\)축 위에 떠 있으려면 \(x\)축과 만나면 안 돼요 → 판별식 \(D<0\).`)}
-${STEP(3,R`\(\dfrac D4=k^2-9<0\) → \(-3<k<3\).`)}
-<p>예제의 부정: ‘<b>어떤</b> 실수 \(x\)에 대하여 \(x^2-2kx+9\le0\)’이 참 → 포물선이 \(x\)축에 닿거나 아래로 내려가는 곳이 있다 → \(D\ge0\) → \(k\le-3\) 또는 \(k\ge3\). 원래 범위의 정확히 바깥이죠? 부정이니까 당연해요.</p>
-<div class="warn"><b>자주 틀림</b>‘거짓이 되도록’이라고 물으면 부정이 참이 되는 범위를 구해야 해요. 문제 끝 단어를 꼭 확인!</div>
-${SUM(R`모든은 전부, 어떤은 하나라도. 이차식이면 포물선 그려서 판별식.`)}`
-},
-func:{
-c3: R`
-${RC(R`중2 일차함수 그래프 기억나요? 계속 올라가거나 계속 내려가는 직선이었죠. 그런 그래프가 바로 일대일대응의 대표 선수예요.`)}
-<p><b>교실 사물함으로 생각하기</b></p>
-<ul><li><b>일대일함수</b>: 학생마다 <b>서로 다른</b> 사물함. 두 명이 한 사물함 X (빈 사물함은 OK)</li><li><b>일대일대응</b>: 거기에 빈 사물함도 <b>하나도 없음</b>. 딱 맞게 짝지어짐.</li></ul>
-<div class="key"><b>정의</b>일대일함수: \(x_1\ne x_2\)이면 \(f(x_1)\ne f(x_2)\)<br>일대일대응: 일대일함수 + 치역 = 공역</div>
-${FIG.hline}
-<h4 class="dh">시험 단골: 구간별 일차함수가 일대일대응일 조건</h4>
-<p>예제: \(f(x)=\begin{cases}(a-1)x+2&(x\ge0)\\(a+1)x+2&(x<0)\end{cases}\)가 일대일대응이 되는 \(a\)의 범위는?</p>
-${STEP(1,R`<b>이어져 있나?</b> 경계 \(x=0\)에서 두 식의 값: 위 식 \(=2\), 아래 식에 0을 넣어도 2. 같으니 끊김 없이 이어져요. (안 이어지면 치역에 구멍이나 겹침이 생겨요.)`)}
-${STEP(2,R`<b>방향이 같나?</b> 두 직선이 둘 다 올라가거나 둘 다 내려가야 해요. 하나는 올라가고 하나는 내려가면 V자나 Λ자가 돼서 가로선이 두 번 만나요.`)}
-${STEP(3,R`그래서 기울기 부호가 같아야: \((a-1)(a+1)>0\) → \(a<-1\) 또는 \(a>1\).`)}
-${STEP(4,R`기울기가 0이면 평평해져서 일대일이 깨지니까 등호는 안 들어가요.`)}
-<div class="tip"><b>체크리스트</b>① 경계에서 값이 같은가 (이어짐) ② 기울기 부호가 같은가 (같은 방향) ③ 기울기가 0이 아닌가</div>
-${SUM(R`가로선 테스트 통과 + 빈자리 없음 = 일대일대응. 구간별이면 ‘이어짐 + 같은 방향’.`)}`
-},
-rat:{
-c1: R`
-${RC(R`중학교 때 분수 통분, 약분 했죠? <b>유리식</b>은 분모에 문자가 있는 분수식일 뿐이에요. 공통수학1의 항등식(계수비교법, 수치대입법)도 여기서 다시 써요.`)}
-<p>\(\dfrac{1}{x}+\dfrac{1}{x+1}\)처럼 분모에 문자가 들어간 식이 유리식이에요. 덧셈·뺄셈은 통분, 곱셈·나눗셈은 인수분해 후 약분.</p>
-<h4 class="dh">부분분수: 분수 하나를 두 조각으로</h4>
-${STEP(1,R`통분부터 거꾸로 봐요. \(\dfrac1x-\dfrac1{x+1}\)을 통분하면 \(\dfrac{(x+1)-x}{x(x+1)}=\dfrac{1}{x(x+1)}\).`)}
-${STEP(2,R`그러니까 거꾸로 \(\dfrac{1}{x(x+1)}=\dfrac1x-\dfrac1{x+1}\). 분모 두 개의 차가 1일 땐 그냥 이렇게 쪼개져요.`)}
-${STEP(3,R`분모 차가 2라면? \(\dfrac1x-\dfrac1{x+2}=\dfrac{2}{x(x+2)}\). 2가 튀어나오니까 \(\dfrac12\)을 곱해서 맞춰요: \(\dfrac1{x(x+2)}=\dfrac12\left(\dfrac1x-\dfrac1{x+2}\right)\).`)}
-<div class="key"><b>부분분수 공식</b>\[\frac{1}{AB}=\frac{1}{B-A}\left(\frac1A-\frac1B\right)\]앞에 붙는 건 ‘분모의 차’로 나누기. 차가 1이면 그냥, 2면 \(\frac12\), 3이면 \(\frac13\).</div>
-<h4 class="dh">망원 합: 쪼갠 걸 쭉 더하면</h4>
-<p>예제 ①: \(\dfrac1{1\cdot2}+\dfrac1{2\cdot3}+\cdots+\dfrac1{9\cdot10}\)</p>
-${STEP(1,R`하나씩 쪼개면 \(\left(1-\dfrac12\right)+\left(\dfrac12-\dfrac13\right)+\left(\dfrac13-\dfrac14\right)+\cdots+\left(\dfrac19-\dfrac1{10}\right)\)`)}
-${STEP(2,R`\(-\dfrac12\)과 \(+\dfrac12\), \(-\dfrac13\)과 \(+\dfrac13\)… 가운데가 전부 짝지어 사라져요.`)}
-${STEP(3,R`남는 건 맨 앞 \(1\)과 맨 뒤 \(-\dfrac1{10}\)뿐 → \(1-\dfrac1{10}=\dfrac9{10}\).`)}
-<p>예제 ②: \(\dfrac1{1\cdot3}+\dfrac1{3\cdot5}+\dfrac1{5\cdot7}\) (분모 차가 2)</p>
-${STEP(1,R`차가 2니까 \(\dfrac12\)을 앞에: \(\dfrac12\left\{\left(1-\dfrac13\right)+\left(\dfrac13-\dfrac15\right)+\left(\dfrac15-\dfrac17\right)\right\}\)`)}
-${STEP(2,R`가운데 지우면 \(\dfrac12\left(1-\dfrac17\right)=\dfrac12\times\dfrac67=\dfrac37\).`)}
-<div class="warn"><b>자주 틀림</b>앞의 \(\dfrac12\)을 빼먹는 실수가 제일 많아요. 쪼개기 전에 ‘분모 차’부터 확인!</div>
-<div class="tip"><b>미정계수 구하기</b>\(\dfrac ax+\dfrac b{x-1}+\dfrac c{x-2}=\dfrac{4}{x(x-1)(x-2)}\) 같은 꼴은 양변에 분모를 곱하고 \(x=0,1,2\)를 하나씩 넣으면 바로 나와요. (공통수학1 수치대입법!)</div>
-${SUM(R`쪼갤 땐 분모 차로 나누고, 더하면 처음과 끝만 남는다.`)}`
-},
-irr:{
-c4: R`
-${RC(R`역함수 단원 + 공통수학1 판별식의 합작이에요. 처음엔 어려워 보여도 패턴이 정해져 있어요.`)}
-<p><b>역함수</b>: \(y=\sqrt{x-p}+q\)의 역함수는 \(y=(x-q)^2+p\ (x\ge q)\). 이차함수의 <b>반쪽</b>이 돼요. 정의역 조건 꼭 붙이세요!</p>
-<h4 class="dh">직선과 몇 번 만나는지 세는 법</h4>
-<p>예제: \(y=\sqrt{x-1}\)과 직선 \(y=x+k\)가 만나는 점의 개수를 \(k\)에 따라 구하기.</p>
-${STEP(1,R`직선 \(y=x+k\)는 기울기가 1로 고정. \(k\)가 바뀌면 위아래로 평행하게 움직여요. 위에서부터 내려온다고 상상해요.`)}
-${PLOT({x0:-0.5,x1:5,y0:-2.5,y1:3,w:180,h:120,pw:220},[{fn:x=>Math.sqrt(x-1),a:1,b:5},{fn:x=>x-0.75,a:-0.5,b:3.7,cls:'c3'},{fn:x=>x-1,a:-0.5,b:4,cls:'c2'},{dot:[1,0]},{t:[3.4,2.9,'k = −3/4 (접함)'],fs:8,anchor:'end'},{t:[4.2,2.4,'k = −1 (시작점)'],fs:8},{t:[1,0,'(1, 0)'],dx:2,dy:12,fs:8}])}
-${STEP(2,R`<b>경계 ① 접할 때</b>: \(x+k=\sqrt{x-1}\) 양변 제곱 → \((x+k)^2=x-1\) → \(x^2+(2k-1)x+k^2+1=0\). 접하면 근이 하나 → \(D=(2k-1)^2-4(k^2+1)=0\) → \(-4k-3=0\) → \(k=-\dfrac34\).`)}
-${STEP(3,R`<b>경계 ② 시작점 \((1,0)\)을 지날 때</b>: \(0=1+k\) → \(k=-1\).`)}
-${STEP(4,R`<b>정리</b> (위에서 아래로 내려오며):<br>\(k>-\dfrac34\): 안 만남 (0개)<br>\(k=-\dfrac34\): 접함 (1개)<br>\(-1\le k<-\dfrac34\): 2개 (시작점 포함)<br>\(k<-1\): 1개`)}
-<div class="warn"><b>자주 틀림</b>제곱하면 원래 없던 근이 생길 수 있어요. 판별식으로 구한 값은 그림으로 꼭 확인하세요. 시작점 경계를 빼먹는 실수도 많아요.</div>
-<p><b>사분면 문제</b>: 시작점이 어디 있는지 + 어느 방향으로 뻗는지, 이 두 개만 보면 지나는 사분면이 정해져요.</p>
-${SUM(R`직선을 움직이며 ‘접할 때(판별식)’와 ‘시작점 지날 때’ 두 순간을 경계로.`)}`
-}
-};
-UNITS.forEach(u=>{ const d = DETAIL[u.id]; if (d) u.concepts.forEach(c=>{ if (d[c.id]) c.body = d[c.id]; }); });
-
 /* ===== 마플시너지 2학기 기말고사 모의평가 01회 ===== */
 const MSRC = (no, pg)=>`마플시너지 공통수학2 p.${pg}, 2학기 기말고사 모의평가 01회 ${no}번`;
 const ADD_M1 = [
@@ -2556,286 +2437,6 @@ const ADD_FIG = [
   v:{ q:R`다음 중 함수의 그래프가 아닌 것은?`, ch:FUNC5B, a:2, hint:R`원.`, sol:R`<div class="step">③.</div>` } },
 ];
 ADD_FIG.forEach(p=>{ const u = UNITS.find(x=>x.id===p.u); if (u && !u.problems.some(q=>q.id===p.id)) u.problems.push(p); });
-/* ===== 못 넣었던 문제들 (그림 직접 작도 + 서술형 자기채점) ===== */
-function PLOT(o, items){
-  const W=o.w||200, H=o.h||160, X=x=>(x-o.x0)/(o.x1-o.x0)*W, Y=y=>H-(y-o.y0)/(o.y1-o.y0)*H;
-  let s=`<figure><svg class="fig" viewBox="-8 -8 ${W+16} ${H+16}" width="${o.pw||230}">`;
-  if (o.axes!==false){ s+=`<line x1="${X(o.x0)}" y1="${Y(0)}" x2="${X(o.x1)}" y2="${Y(0)}" class="ax"/><line x1="${X(0)}" y1="${Y(o.y0)}" x2="${X(0)}" y2="${Y(o.y1)}" class="ax"/><text x="${X(0)-9}" y="${Y(0)+11}" font-size="10">O</text>`; }
-  items.forEach(it=>{
-    if (it.fn){ const pts=[]; for(let i=0;i<=80;i++){ const x=it.a+(it.b-it.a)*i/80, y=it.fn(x); if(y>=o.y0-0.5&&y<=o.y1+0.5) pts.push(`${X(x).toFixed(1)},${Y(y).toFixed(1)}`);} s+=`<polyline points="${pts.join(' ')}" class="${it.cls||'c1'}"/>`; }
-    if (it.pts) s+=`<polyline points="${it.pts.map(p=>`${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(' ')}" class="${it.cls||'c1'}"/>`;
-    if (it.dash) s+=`<polyline points="${it.dash.map(p=>`${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(' ')}" class="ds"/>`;
-    if (it.dot) s+=`<circle cx="${X(it.dot[0])}" cy="${Y(it.dot[1])}" r="3" class="${it.hole?'hole':'dot'}"/>`;
-    if (it.t) s+=`<text x="${X(it.t[0])+(it.dx||0)}" y="${Y(it.t[1])+(it.dy||0)}" font-size="${it.fs||11}" ${it.anchor?`text-anchor="${it.anchor}"`:''}>${it.t[2]}</text>`;
-  });
-  return s+`</svg>${o.cap?`<figcaption>${o.cap}</figcaption>`:''}</figure>`;
-}
-/* y=x 위 계단 그림: 점 p0<p1<…, f(p_i)=p_{i+1} (up=true면 f가 y=x 위) */
-function CHAIN(labels, up, ptsVal){
-  const v=ptsVal, n=v.length, items=[{pts:[[0,0],[v[n-1]*1.08,v[n-1]*1.08]],cls:'ds'}], fp=[];
-  if (up){ fp.push([-0.6, v[0]*0.6]); fp.push([0,v[0]]); for(let i=0;i<n-1;i++) fp.push([v[i],v[i+1]]); }
-  else { fp.push([v[0]*0.7,0]); for(let i=1;i<n;i++) fp.push([v[i],v[i-1]]); fp.push([v[n-1]*1.06, v[n-1]*1.02]); }
-  items.push({pts:fp});
-  for(let i=0;i<n;i++){ items.push({dash:[[0,v[i]],[v[i],v[i]],[v[i],0]]}); items.push({t:[0,v[i],labels[i]],dx:-12,dy:4}); }
-  if (!up) for(let i=0;i<n;i++) items.push({t:[v[i],0,labels[i]],dx:-3,dy:13,fs:10});
-  items.push({t:[v[n-1]*1.06,v[n-1]*1.08,'y=x'],dx:-6,dy:-4,fs:10});
-  return PLOT({x0:-0.8,x1:v[n-1]*1.15,y0:-0.5,y1:v[n-1]*1.15,w:200,h:170,cap:up?'y=f(x)는 y=x보다 위':'y=f(x)는 y=x보다 아래'}, items);
-}
-function map3(A,B,C,ab,bc,lab){
-  const h=30+Math.max(A.length,B.length,C.length)*30, yA=i=>28+i*30, sx=[40,130,220];
-  let s=`<figure><svg class="fig" viewBox="0 0 270 ${h+8}" width="270"><defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--mint)"/></marker></defs>`;
-  [A,B,C].forEach((S,k)=>{ s+=`<ellipse cx="${sx[k]}" cy="${h/2}" rx="28" ry="${h/2-6}" class="ax"/>`; S.forEach((x,i)=>{ s+=`<circle cx="${sx[k]}" cy="${yA(i)}" r="2.5" class="dot"/><text x="${sx[k]-(k===0?14:-8)}" y="${yA(i)+4}" ${k===0?'text-anchor="end"':''} font-size="11">${x}</text>`; }); });
-  ab.forEach(([i,j])=>{ s+=`<line x1="${sx[0]+4}" y1="${yA(i)}" x2="${sx[1]-5}" y2="${yA(j)}" class="c1" stroke-width="1.5" marker-end="url(#ah3)"/>`; });
-  bc.forEach(([i,j])=>{ s+=`<line x1="${sx[1]+4}" y1="${yA(i)}" x2="${sx[2]-5}" y2="${yA(j)}" class="c3" stroke-width="1.5" marker-end="url(#ah3)"/>`; });
-  s+=`<text x="85" y="12" text-anchor="middle" class="tb">${lab[0]}</text><text x="175" y="12" text-anchor="middle" class="tb">${lab[1]}</text></svg></figure>`; return s;
-}
-const SMALL = (items, o)=>PLOT(Object.assign({x0:-1,x1:4,y0:-1,y1:4,w:110,h:90,pw:112},o||{}), items).replace('<figure>','').replace('</figure>','');
-const YS = '유형 해결의 법칙 공통수학2';
-const ADD_MISS = [
-/* --- 유형 해결의 법칙 --- */
-{ u:'prop', id:'0960', tag:'충분·필요조건 표', c:'c5', t:90, src:`${YS} p.133, 0960번 (STEP 3 내신 마스터)`, q:R`다음 중 두 조건 \(p, q\)에 대하여 \(p\)는 \(q\)이기 위한 어떤 조건인지 바르게 나타낸 것은?`, ch:[R`\(p: |x-2|=1\), \(q: x=3\) → 필요충분조건`,R`\(p: xy=0\), \(q: x^2+y^2=0\) (\(x, y\) 실수) → 필요조건`,R`\(p\): \(x, y\)는 유리수, \(q\): \(x+y, xy\)는 유리수 → 필요충분조건`,R`\(p: x=3\), \(q: x^2-6x+9=0\) → 충분조건`,R`\(p\): \(x\)는 6의 약수, \(q\): \(x\)는 8의 약수 → 필요조건`], a:1, hint:R`진리집합을 직접 써 보고 포함 관계를 따져요.`,
-  sol:R`<div class="step">① \(P=\{1,3\}\), \(Q=\{3\}\) → \(Q\subset P\)라 필요조건이지 필요충분 아님.</div><div class="step">② \(x^2+y^2=0\)이면 \(x=y=0\)이라 \(xy=0\). \(q\Rightarrow p\) → 필요조건 ✔.</div><div class="step">③ \(x=\sqrt2, y=-\sqrt2\)면 \(q\)는 만족, \(p\)는 아님 → 충분조건일 뿐.</div><div class="step">④ \(x^2-6x+9=0\) ⟺ \(x=3\) → 필요충분조건. ‘충분조건’이라고만 쓰면 정확한 답이 아니에요.</div><div class="step">⑤ \(\{1,2,3,6\}\)과 \(\{1,2,4,8\}\)은 포함 관계가 없어요.</div>`,
-  v:{ q:R`\(p\)는 \(q\)이기 위한 어떤 조건인지 바르게 나타낸 것은?`, ch:[R`\(p: x=2\), \(q: x^2=4\) → 필요조건`,R`\(p: x^2=0\), \(q: x=0\) → 필요충분조건`,R`\(p: x>1\), \(q: x>2\) → 충분조건`,R`\(p: |x|=1\), \(q: x=1\) → 충분조건`,R`\(p\): 4의 배수, \(q\): 2의 배수 → 필요조건`], a:1, hint:R`작은 집합이 충분.`, sol:R`<div class="step">② 두 조건이 똑같은 집합 \(\{0\}\).</div>` } },
-{ u:'inv', id:'1130', tag:'합성함수와 인수정리', c:'c1', t:90, src:`${YS} p.157, 1130번 (STEP 3 내신 마스터)`, q:R`함수 \(f(x)=x^2+a\)에 대하여 \((f\circ f)(x)\)가 \(x+2\)로 나누어떨어질 때, 모든 실수 \(a\)의 값의 곱은?`, ch:['−16','−9','−1','9','16'], a:4, hint:R`나누어떨어짐 → \(x=-2\)를 넣으면 0 (인수정리).`,
-  sol:R`<div class="step">\((f\circ f)(-2)=0\). \(f(-2)=4+a\), \(f(4+a)=(4+a)^2+a=0\).</div><div class="step">\(a^2+9a+16=0\) → 근과 계수의 관계로 곱 16.</div>`,
-  v:{ q:R`\(f(x)=x^2+a\)에 대하여 \((f\circ f)(x)\)가 \(x-1\)로 나누어떨어질 때 모든 \(a\)의 곱은?`, ch:['−3','−1','1','3','9'], a:2, hint:R`\((1+a)^2+a=0\).`, sol:R`<div class="step">\(a^2+3a+1=0\) → 곱 1.</div>` } },
-{ u:'inv', id:'1132', tag:'역함수가 존재하는 구간별 함수', c:'c2', t:60, src:`${YS} p.157, 1132번 (STEP 3 내신 마스터)`, q:R`다음 중 실수 전체의 집합에서 정의된 함수 \(f(x)=\begin{cases}x+3&(x\ge0)\\ax+b&(x<0)\end{cases}\)의 역함수가 존재하도록 하는 상수 \(a, b\)의 값으로 적당한 것은?`, ch:[R`\(a=-2,\ b=-3\)`,R`\(a=-1,\ b=3\)`,R`\(a=1,\ b=-3\)`,R`\(a=2,\ b=-3\)`,R`\(a=3,\ b=3\)`], a:4, hint:R`\(x=0\)에서 이어지고(\(b=3\)), 기울기가 양수.`,
-  sol:R`<div class="step">\(x\ge0\) 부분은 기울기 1, 시작값 3. 이어지려면 \(b=3\), 같은 방향이려면 \(a>0\).</div><div class="step">⑤만 둘 다 만족.</div>`,
-  v:{ q:R`\(f(x)=\begin{cases}x-2&(x\ge0)\\ax+b&(x<0)\end{cases}\)의 역함수가 존재하는 \(a, b\)로 적당한 것은?`, ch:[R`\(a=-1, b=-2\)`,R`\(a=2, b=2\)`,R`\(a=1, b=-2\)`,R`\(a=3, b=-1\)`,R`\(a=-2, b=-2\)`], a:2, hint:R`\(b=-2\), \(a>0\).`, sol:R`<div class="step">③.</div>` } },
-{ u:'inv', id:'1136', tag:'그래프에서 역함수 값 찾기', c:'c4', t:90, src:`${YS} p.157, 1136번 (STEP 3 내신 마스터) (그림은 앱에서 다시 그림)`, q:R`아래 그림은 함수 \(y=f(x)\)의 그래프와 직선 \(y=x\)를 나타낸 것이다. 이때 \((f\circ f\circ f)^{-1}(d)\)의 값은? (단, 모든 점선은 \(x\)축 또는 \(y\)축에 평행하다.)`+CHAIN(['a','b','c','d'],true,[1,1.6,2.4,3.6]), ch:['0','a','b','c','d'], a:1, hint:R`그림에서 \(f(0)=a,\ f(a)=b,\ f(b)=c,\ f(c)=d\)를 읽어요.`,
-  sol:R`<div class="step">\(y=x\)를 거울처럼 써서 읽으면 \(f(0)=a\), \(f(a)=b\), \(f(b)=c\), \(f(c)=d\).</div><div class="step">\((f\circ f\circ f)^{-1}(d)=k\) ⟺ \(f(f(f(k)))=d\). 거꾸로 따라가면 \(f(f(k))=c\) → \(f(k)=b\) → \(k=a\).</div>`,
-  v:{ q:R`같은 그림에서 \((f\circ f)^{-1}(c)\)의 값은?`+CHAIN(['a','b','c','d'],true,[1,1.6,2.4,3.6]), ch:['0','a','b','c','d'], a:1, hint:R`\(f(f(k))=c\).`, sol:R`<div class="step">\(f(k)=b\) → \(k=a\).</div>` } },
-{ u:'rat', id:'1271', tag:'번분수식이 자연수', c:'c1', t:120, src:`${YS} p.176, 1271번 (STEP 3 내신 마스터)`, q:R`\(\dfrac{\dfrac1n-\dfrac1{n+1}}{\dfrac1{n+1}-\dfrac1{n+2}}\)의 값이 자연수가 되도록 하는 모든 자연수 \(n\)의 값의 합은?`, ch:['3','5','7','9','11'], a:0, hint:R`위아래를 각각 통분하면 \(\dfrac1{n(n+1)}\)과 \(\dfrac1{(n+1)(n+2)}\).`,
-  sol:R`<div class="step">분자 \(=\dfrac1{n(n+1)}\), 분모 \(=\dfrac1{(n+1)(n+2)}\).</div><div class="step">나누면 \(\dfrac{n+2}{n}=1+\dfrac2n\). 자연수이려면 \(n\)이 2의 약수: 1, 2. 합 3.</div>`,
-  v:{ q:R`\(\dfrac{\frac1n-\frac1{n+2}}{\frac1{n+2}-\frac1{n+4}}\)이 자연수가 되는 자연수 \(n\)의 합은?`, ch:['3','5','7','9','11'], a:2, hint:R`\(1+\dfrac4n\).`, sol:R`<div class="step">\(n=1,2,4\) → 7.</div>` } },
-{ u:'irr', id:'1407', tag:'무리수 대입 (차수 낮추기)', c:'c1', t:90, src:`${YS} p.194, 1407번 (STEP 3 내신 마스터)`, q:R`\(x=\sqrt5-2\)일 때, \(x^3+6x^2+7x+1\)의 값은?`, ch:[R`\(\sqrt5\)`,'3',R`\(\sqrt5+1\)`,'4',R`\(2\sqrt5\)`], a:1, hint:R`\(x+2=\sqrt5\)를 제곱하면 \(x^2+4x-1=0\).`,
-  sol:R`<div class="step">\((x+2)^2=5\) → \(x^2+4x-1=0\).</div><div class="step">주어진 식을 \(x^2+4x-1\)로 나누면 \((x^2+4x-1)(x+2)+3\). 앞부분이 0이라 값은 3.</div><div class="tip"><b>요령</b>무리수를 그대로 세제곱하지 말고, 0이 되는 이차식을 만들어 나누세요.</div>`,
-  v:{ q:R`\(x=\sqrt3-1\)일 때 \(x^3+3x^2+x+1\)의 값은?`, ch:[R`\(\sqrt3\)`,'2',R`\(\sqrt3+1\)`,R`\(\sqrt3+2\)`,R`\(2\sqrt3\)`], a:3, hint:R`\(x^2+2x-2=0\).`, sol:R`<div class="step">나머지 \(x+3=\sqrt3+2\).</div>` } },
-{ u:'irr', id:'1408', tag:'곱셈공식 변형 (x³+y³)', c:'c1', t:80, src:`${YS} p.194, 1408번 (STEP 3 내신 마스터)`, q:R`\(x=\dfrac{\sqrt2}{\sqrt3+1},\ y=\dfrac{\sqrt2}{\sqrt3-1}\)일 때, \(x^3+y^3\)의 값은?`, ch:['2',R`\(\sqrt6\)`,'6',R`\(3\sqrt6\)`,R`\(6\sqrt6\)`], a:3, hint:R`\(x+y\), \(xy\)부터. \(x^3+y^3=(x+y)^3-3xy(x+y)\).`,
-  sol:R`<div class="step">유리화: \(x=\dfrac{\sqrt2(\sqrt3-1)}2\), \(y=\dfrac{\sqrt2(\sqrt3+1)}2\).</div><div class="step">\(x+y=\sqrt6\), \(xy=\dfrac{2\times2}4=1\).</div><div class="step">\((\sqrt6)^3-3\times1\times\sqrt6=6\sqrt6-3\sqrt6=3\sqrt6\).</div>`,
-  v:{ q:R`\(x=\dfrac1{\sqrt2+1},\ y=\dfrac1{\sqrt2-1}\)일 때 \(x^3+y^3\)은?`, ch:[R`\(4\sqrt2\)`,R`\(6\sqrt2\)`,R`\(8\sqrt2\)`,R`\(10\sqrt2\)`,R`\(12\sqrt2\)`], a:3, hint:R`\(x+y=2\sqrt2,\ xy=1\).`, sol:R`<div class="step">\(16\sqrt2-6\sqrt2\).</div>` } },
-/* --- 마플 --- */
-{ u:'prop', id:'M1033', tag:'진리집합과 미지수', c:'c5', t:120, input:'4', src:MB('1033',179), q:R`전체집합 \(U=\{-1,0,1,2,3,4,5\}\)에 대하여 세 조건 \(p, q, r\)의 진리집합을 각각 \(P, Q, R\)이라 할 때, \(P=\{-1,0,1\}\), \(Q=\{a+3\}\), \(R=\{2,4,2a+7\}\)이다. 명제 \(q\to p\)와 명제 \(p\to\sim r\)이 모두 참이 되도록 하는 실수 \(a\)에 대하여 \(a^2\)의 값을 구하시오.`, hint:R`\(a+3\in P\)에서 후보 3개, 그다음 \(2a+7\)이 \(P\)에 없어야.`,
-  sol:R`<div class="step">\(q\to p\): \(a+3\in\{-1,0,1\}\) → \(a=-4,-3,-2\).</div><div class="step">\(p\to\sim r\): \(P\)와 \(R\)이 안 겹쳐야. \(2a+7\)이 \(-1, 3\)… 따져 보면 \(a=-4\)→\(-1\) ✘, \(a=-3\)→1 ✘, \(a=-2\)→3 ✔.</div><div class="step">\(a^2=4\).</div>`,
-  v:{ q:R`\(U=\{0,1,\dots,6\}\), \(P=\{0,1,2\}\), \(Q=\{a+2\}\), \(R=\{3,5,2a+4\}\)에서 \(q\to p\), \(p\to\sim r\)이 모두 참일 때 \(a^2+1\)을 구하시오.`, input:'1', hint:R`\(a\in\{-2,-1,0\}\).`, sol:R`<div class="step">\(a=0\)만 \(2a+4=4\notin P\). 답 1.</div>` } },
-{ u:'inv', id:'M1391', tag:'그래프로 합성함수', c:'c1', t:90, src:MB('1391',243)+' (그림은 앱에서 다시 그림)', q:R`두 함수 \(y=f(x)\), \(y=g(x)\)의 그래프가 각각 아래와 같다. \(f(x)\)는 \(x<1\)에서 1, \(x\ge1\)에서 3이고, \(g(x)\)는 홀수에서 1, 짝수에서 0인 지그재그 모양이다. \(y=(g\circ f)(x)\)의 그래프의 개형은?`+PLOT({x0:-2,x1:3,y0:-0.5,y1:3.5,w:150,h:110,pw:170},[{pts:[[-2,1],[1,1]]},{dot:[1,1],hole:1},{pts:[[1,3],[3,3]]},{dot:[1,3]},{t:[1,0,'1'],dy:13},{t:[0,3,'3'],dx:-10,dy:4},{t:[0,1,'1'],dx:-10,dy:4},{t:[2,3,'f(x)'],dy:-6}])+PLOT({x0:-2.5,x1:4.5,y0:-0.5,y1:1.8,w:180,h:70,pw:220},[{pts:[[-2.5,0.5],[-2,0],[-1,1],[0,0],[1,1],[2,0],[3,1],[4,0],[4.5,0.5]]},{t:[1,0,'1'],dy:12},{t:[3,0,'3'],dy:12},{t:[0,1,'1'],dx:-10,dy:4},{t:[3.5,1.4,'g(x)']}]), ch:[SMALL([{pts:[[-1,2],[4,2]]}]),SMALL([{pts:[[-1,1],[0,1],[0.3,2.5],[1.3,2.5],[1.6,1],[2.6,1],[2.9,2.5],[4,2.5]]}]),SMALL([{pts:[[-1,1],[-0.5,2],[0,1],[0.5,2],[1,1.5],[1.5,3],[2,2],[2.5,3],[3,2],[3.5,3],[4,2]]}]),SMALL([{pts:[[-1,0],[0,0],[0,0.7],[1,0.7],[1,1.4],[2,1.4],[2,2.1],[3,2.1],[3,2.8],[4,2.8]]}]),SMALL([{pts:[[-1,1.5],[0.6,1.5],[1,2.2],[1.4,1.5],[4,1.5]]}])], a:0, hint:R`\(f\)의 값은 1 아니면 3뿐. \(g(1)\), \(g(3)\)만 보면 돼요.`,
-  sol:R`<div class="step">\(f(x)\)는 1 또는 3만 나와요.</div><div class="step">\(g(1)=1\), \(g(3)=1\). 그래서 \((g\circ f)(x)=1\) (항상).</div><div class="step">그래프는 \(y=1\)인 가로 직선 → ①.</div>`,
-  v:{ q:R`같은 \(f, g\)에서 \((g\circ f)(5)+(f\circ g)(3)\)의 값은?`, ch:['2','3','4','5','6'], a:2, hint:R`\(g(3)=1\), \(f(1)=3\).`, sol:R`<div class="step">\(g(f(5))=g(3)=1\), \(f(g(3))=f(1)=3\). 합 4.</div>` } },
-{ u:'inv', id:'M1392', tag:'그래프로 합성함수 개형', c:'c1', t:150, src:MB('1392',243)+' (그림은 앱에서 다시 그림)', q:R`집합 \(X=\{x\mid0\le x\le2\}\)에 대하여 \(X\)에서 \(X\)로의 두 함수의 그래프가 아래와 같다. \(f\)는 \((0,0)\to(1,2)\to(2,0)\)으로 꺾인 모양, \(g\)는 \((0,1)\to(1,0)\to(2,2)\)로 꺾인 모양이다. 함수 \(y=(f\circ g)(x)\)의 그래프의 개형은?`+PLOT({x0:-0.3,x1:2.4,y0:-0.3,y1:2.4,w:110,h:100,pw:140},[{pts:[[0,0],[1,2],[2,0]]},{t:[0.4,2.1,'f']},{t:[1,0,'1'],dy:12},{t:[2,0,'2'],dy:12},{t:[0,2,'2'],dx:-10,dy:4}])+PLOT({x0:-0.3,x1:2.4,y0:-0.3,y1:2.4,w:110,h:100,pw:140},[{pts:[[0,1],[1,0],[2,2]],cls:'c3'},{t:[1.6,2.1,'g']},{t:[1,0,'1'],dy:12},{t:[2,0,'2'],dy:12},{t:[0,1,'1'],dx:-10,dy:4}]),
-  ch:[SMALL([{pts:[[0,2],[0.5,0],[1,2],[2,0]]},{t:[0.5,0,'½'],dy:11,fs:9},{t:[1,0,'1'],dy:11,fs:9}],{x0:-0.3,x1:2.3,y0:-0.3,y1:2.3}),SMALL([{pts:[[0,2],[1,0],[1.5,2],[2,0]]},{t:[1,0,'1'],dy:11,fs:9},{t:[1.5,0,'3/2'],dy:11,fs:8}],{x0:-0.3,x1:2.3,y0:-0.3,y1:2.3}),SMALL([{pts:[[0,0],[0.5,2],[1,0],[2,2]]},{t:[0.5,0,'½'],dy:11,fs:9}],{x0:-0.3,x1:2.3,y0:-0.3,y1:2.3}),SMALL([{pts:[[0,0],[0.5,2],[1,0],[1.5,2],[2,0]]}],{x0:-0.3,x1:2.3,y0:-0.3,y1:2.3}),SMALL([{pts:[[0,2],[0.5,0],[1,2],[1.5,0],[2,2]]}],{x0:-0.3,x1:2.3,y0:-0.3,y1:2.3})], a:1, hint:R`\(g(x)\)의 값이 1보다 작은지 큰지로 구간을 나눠요.`,
-  sol:R`<div class="step">\(0\le x\le1\): \(g=1-x\in[0,1]\) → \(f(g)=2g=2-2x\). (2에서 0으로)</div><div class="step">\(1\le x\le\dfrac32\): \(g=2x-2\in[0,1]\) → \(f=4x-4\). (0에서 2로)</div><div class="step">\(\dfrac32\le x\le2\): \(g\in[1,2]\) → \(f=4-2g=8-4x\). (2에서 0으로)</div><div class="step">꼭짓점 \((0,2),(1,0),\left(\dfrac32,2\right),(2,0)\) → ②.</div>`,
-  v:{ q:R`같은 \(f, g\)에서 \((f\circ g)\left(\dfrac32\right)+(g\circ f)\left(\dfrac12\right)\)의 값은?`, ch:['0','1','2','3','4'], a:2, hint:R`\(g\left(\frac32\right)=1\), \(f\left(\frac12\right)=1\).`, sol:R`<div class="step">\(f(1)=2\), \(g(1)=0\) → 2.</div>` } },
-{ u:'inv', id:'M1393', tag:'합성함수 그래프의 성질', c:'c1', t:150, src:MB('1393',243)+' (그림은 앱에서 다시 그림)', q:R`\(0\le x\le2\)에서 정의된 두 함수의 그래프가 아래와 같다. (\(f\): \((0,0)\to(1,2)\to(2,0)\), \(g\): \(0\le x\le1\)에서 2, 그다음 \((2,0)\)까지 직선) 함수 \(y=(g\circ f)(x)\)에 대하여 보기에서 옳은 것만을 있는 대로 고른 것은?`+PLOT({x0:-0.3,x1:2.4,y0:-0.3,y1:2.4,w:110,h:100,pw:140},[{pts:[[0,0],[1,2],[2,0]]},{t:[0.4,2.1,'f']},{t:[1,0,'1'],dy:12},{t:[2,0,'2'],dy:12},{t:[0,2,'2'],dx:-10,dy:4}])+PLOT({x0:-0.3,x1:2.4,y0:-0.3,y1:2.4,w:110,h:100,pw:140},[{pts:[[0,2],[1,2],[2,0]],cls:'c3'},{t:[1.5,1.5,'g']},{t:[1,0,'1'],dy:12},{t:[2,0,'2'],dy:12},{t:[0,2,'2'],dx:-10,dy:4}])+R`<div class="key">ㄱ. 함수 \(y=(g\circ f)(x)\)의 치역은 \(\{y\mid0\le y\le2\}\)이다.<br>ㄴ. 그래프와 \(x\)축, \(y\)축 및 직선 \(x=2\)로 둘러싸인 넓이는 3이다.<br>ㄷ. 방정식 \((g\circ f)(x)=1\)의 모든 실근의 합은 2이다.</div>`, ch:['ㄱ','ㄴ','ㄱ, ㄴ','ㄱ, ㄷ','ㄱ, ㄴ, ㄷ'], a:4, hint:R`\(f\)의 값이 1보다 작으면 \(g=2\), 크면 \(g=4-2f\).`,
-  sol:R`<div class="step">\(f\le1\)인 구간 \(\left[0,\frac12\right]\), \(\left[\frac32,2\right]\)에서 \(g\circ f=2\).</div><div class="step">\(\frac12\le x\le1\): \(4-4x\) (2→0). \(1\le x\le\frac32\): \(4x-4\) (0→2). 가운데가 V자로 파인 모양.</div>`+PLOT({x0:-0.2,x1:2.3,y0:-0.3,y1:2.4,w:150,h:110,pw:180},[{pts:[[0,2],[0.5,2],[1,0],[1.5,2],[2,2]]},{t:[1,0,'1'],dy:12},{t:[0,2,'2'],dx:-10,dy:4}])+R`<div class="step">ㄱ ✔. ㄴ: 가로 2 × 세로 2 사각형에서 V자 삼각형(밑변 1, 높이 2, 넓이 1)을 빼면 3 ✔.</div><div class="step">ㄷ: 높이 1인 곳은 \(x=\frac34,\ \frac54\), 합 2 ✔. 답 ⑤.</div>`,
-  v:{ q:R`같은 \(f, g\)에서 \((g\circ f)\left(\dfrac14\right)+(g\circ f)\left(\dfrac54\right)\)의 값은?`, ch:['1','2','3','4','5'], a:2, hint:R`\(f\left(\frac14\right)=\frac12\), \(f\left(\frac54\right)=\frac32\).`, sol:R`<div class="step">\(g\left(\frac12\right)=2\), \(g\left(\frac32\right)=1\) → 3.</div>` } },
-{ u:'inv', id:'M1394', tag:'합성함수 그래프와 넓이', c:'c1', t:180, src:MB('1394',243)+' (그림은 앱에서 다시 그림)', q:R`두 함수의 그래프가 아래와 같다. (\(f\): \((0,0)\to\left(\frac32,3\right)\to(3,0)\), \(g\): \((0,0)\to(1,2)\to(3,3)\)) 함수 \(y=(g\circ f)(x)\)에 대하여 보기에서 옳은 것만을 있는 대로 고른 것은?`+PLOT({x0:-0.3,x1:3.4,y0:-0.3,y1:3.4,w:110,h:100,pw:140},[{pts:[[0,0],[1.5,3],[3,0]]},{t:[0.4,3.1,'f']},{t:[1.5,0,'3/2'],dy:12,fs:9},{t:[3,0,'3'],dy:12},{t:[0,3,'3'],dx:-10,dy:4}])+PLOT({x0:-0.3,x1:3.4,y0:-0.3,y1:3.4,w:110,h:100,pw:140},[{pts:[[0,0],[1,2],[3,3]],cls:'c3'},{t:[2,2.9,'g']},{t:[1,0,'1'],dy:12},{t:[3,0,'3'],dy:12},{t:[0,2,'2'],dx:-10,dy:4},{t:[0,3,'3'],dx:-10,dy:4}])+R`<div class="key">ㄱ. 최댓값은 3이다.<br>ㄴ. 그래프와 \(x\)축으로 둘러싸인 넓이는 6이다.<br>ㄷ. 방정식 \((g\circ f)(x)=1\)의 모든 실근의 합은 3이다.</div>`, ch:['ㄱ','ㄴ','ㄱ, ㄴ','ㄱ, ㄷ','ㄱ, ㄴ, ㄷ'], a:4, hint:R`\(f\)가 \(x=\frac32\)에 대해 대칭이라 \(g\circ f\)도 대칭.`,
-  sol:R`<div class="step">ㄱ: \(f\)의 최댓값 3일 때 \(g(3)=3\) ✔.</div><div class="step">왼쪽 절반(\(0\le x\le\frac32\))만 보면 \(f=2x\). \(f\le1\)(\(x\le\frac12\))에서 \(g\circ f=4x\), 그다음 \(g\circ f=x+\frac32\).</div>`+PLOT({x0:-0.2,x1:3.3,y0:-0.3,y1:3.4,w:160,h:120,pw:190},[{pts:[[0,0],[0.5,2],[1.5,3],[2.5,2],[3,0]]},{dash:[[0.5,0],[0.5,2]]},{dash:[[2.5,0],[2.5,2]]},{t:[0.5,0,'½'],dy:12,fs:9},{t:[1.5,3,'(3/2, 3)'],dy:-5,fs:9}])+R`<div class="step">ㄴ: 왼쪽 절반 = 삼각형(밑변 \(\frac12\), 높이 2 → \(\frac12\)) + 사다리꼴(윗변 2, 아랫변 3, 높이 1 → \(\frac52\)) = 3. 대칭이니 전체 6 ✔.</div><div class="step">ㄷ: \(4x=1\) → \(x=\frac14\), 대칭점 \(\frac{11}4\). 합 3 ✔. 답 ⑤.</div>`,
-  v:{ q:R`같은 \(f, g\)에서 \((g\circ f)(1)+(g\circ f)(2)\)의 값은?`, ch:['3','4','5','6','7'], a:2, hint:R`\(f(1)=f(2)=2\).`, sol:R`<div class="step">\(g(2)=\frac52\) 두 번 → 5.</div>` } },
-{ u:'inv', id:'M1469', tag:'세 집합 대응과 역함수', c:'c3', t:80, input:'6', src:MB('1469',255)+' (그림은 앱에서 다시 그림)', q:R`세 집합 \(X=\{1,2,3\}\), \(Y=\{-2,-1,1\}\), \(Z=\{2,4,6\}\)에 대하여 두 함수 \(f: X\to Y\), \(g: Y\to Z\)가 그림과 같다. 이때 \((g\circ(g\circ f)^{-1})(6)\)의 값을 구하시오.`+map3(['1','2','3'],['−2','−1','1'],['2','4','6'],[[0,2],[1,0],[2,1]],[[0,0],[1,1],[2,2]],['f','g']), hint:R`\((g\circ f)^{-1}=f^{-1}\circ g^{-1}\).`,
-  sol:R`<div class="step">\(g\circ(g\circ f)^{-1}=g\circ f^{-1}\circ g^{-1}\).</div><div class="step">\(g^{-1}(6)=1\) (6으로 들어오는 화살표는 1에서). \(f^{-1}(1)=1\). \(g(1)=6\).</div>`,
-  v:{ q:R`같은 그림에서 \((g\circ f)(2)+f^{-1}(-1)\)의 값을 구하시오.`+map3(['1','2','3'],['−2','−1','1'],['2','4','6'],[[0,2],[1,0],[2,1]],[[0,0],[1,1],[2,2]],['f','g']), input:'5', hint:R`\(f(2)=-2\).`, sol:R`<div class="step">\(g(-2)=2\), \(f^{-1}(-1)=3\) → 5.</div>` } },
-{ u:'inv', id:'M1471', tag:'점 그래프와 합성·역함수', c:'c3', t:70, src:MB('1471',255)+' (그림은 앱에서 다시 그림)', q:R`집합 \(A=\{1,2,3,4\}\)에 대하여 \(A\)에서 \(A\)로의 두 함수의 그래프가 아래와 같을 때, \((g\circ f)(1)+(f\circ g)^{-1}(3)\)의 값은?`+PLOT({x0:-0.3,x1:4.5,y0:-0.3,y1:4.5,w:110,h:100,pw:140},[{dot:[1,1]},{dot:[2,4]},{dot:[3,2]},{dot:[4,3]},{t:[1,0,'1'],dy:12},{t:[2,0,'2'],dy:12},{t:[3,0,'3'],dy:12},{t:[4,0,'4'],dy:12},{t:[0,4,'4'],dx:-10,dy:4},{t:[2.5,4.2,'f']}])+PLOT({x0:-0.3,x1:4.5,y0:-0.3,y1:4.5,w:110,h:100,pw:140},[{dot:[1,2]},{dot:[2,1]},{dot:[3,3]},{dot:[4,4]},{t:[1,0,'1'],dy:12},{t:[2,0,'2'],dy:12},{t:[3,0,'3'],dy:12},{t:[4,0,'4'],dy:12},{t:[0,4,'4'],dx:-10,dy:4},{t:[2.5,4.2,'g']}]), ch:['4','5','6','7','8'], a:2, hint:R`점의 좌표를 표로 정리: \(f\): 1→1, 2→4, 3→2, 4→3.`,
-  sol:R`<div class="step">\(f(1)=1\), \(f(2)=4\), \(f(3)=2\), \(f(4)=3\). \(g(1)=2\), \(g(2)=1\), \(g(3)=3\), \(g(4)=4\).</div><div class="step">\((g\circ f)(1)=g(1)=2\).</div><div class="step">\((f\circ g)^{-1}(3)=g^{-1}(f^{-1}(3))=g^{-1}(4)=4\). 합 6.</div>`,
-  v:{ q:R`같은 그래프에서 \((f\circ g)(1)+(g\circ f)^{-1}(4)\)의 값은?`, ch:['4','5','6','7','8'], a:2, hint:R`\(f^{-1}(g^{-1}(4))\).`, sol:R`<div class="step">\(f(2)=4\), \(f^{-1}(4)=2\) → 6.</div>` } },
-{ u:'irr', id:'M1820', tag:'역함수 그래프로 무리함수 결정', c:'c4', t:120, src:MB('1820',313)+' (그림은 앱에서 다시 그림)', q:R`함수 \(y=-\sqrt{ax-b}+c\)의 역함수의 그래프가 아래와 같을 때 (꼭짓점 \((2,6)\), \(y\)절편 4인 포물선의 왼쪽 부분, \(x\le2\)), 상수 \(a, b, c\)에 대하여 \(abc\)의 값은?`+PLOT({x0:-2,x1:3,y0:-1,y1:7,w:130,h:130,pw:170},[{fn:x=>-0.5*(x-2)**2+6,a:-1.6,b:2},{dot:[2,6]},{dash:[[0,6],[2,6],[2,0]]},{t:[0,6,'6'],dx:-10,dy:4},{t:[0,4,'4'],dx:-10,dy:4},{t:[2,0,'2'],dy:12}]), ch:['24','36','48','52','64'], a:2, hint:R`역함수 식 \(y=k(x-2)^2+6\ (x\le2)\)부터.`,
-  sol:R`<div class="step">\(y=k(x-2)^2+6\)이 \((0,4)\)를 지나니 \(k=-\dfrac12\).</div><div class="step">원래 함수는 \(x, y\)를 바꾼 것: \(x=-\dfrac12(y-2)^2+6\), \(y\le2\) → \(y=2-\sqrt{12-2x}=-\sqrt{-2x+12}+2\).</div><div class="step">\(a=-2,\ b=-12,\ c=2\) → \(abc=48\).</div>`,
-  v:{ q:R`\(y=-\sqrt{ax-b}+c\)의 역함수 그래프가 꼭짓점 \((1,3)\), \(y\)절편 2인 포물선의 왼쪽 부분일 때 \(abc\)는?`, ch:['1','3','6','9','12'], a:1, hint:R`\(y=-(x-1)^2+3\).`, sol:R`<div class="step">원래 \(y=-\sqrt{-x+3}+1\) → \(a=-1, b=-3, c=1\) → 3.</div>` } },
-/* --- 풍산자 --- */
-{ u:'func', id:'P31-04', tag:'f=g가 되는 정의역', c:'c2', t:60, src:PS('1. 함수','04',140), q:R`집합 \(X\)를 정의역으로 하는 두 함수 \(f(x)=2x^2-1\), \(g(x)=2x+3\)에 대하여 \(f=g\)가 되도록 하는 집합 \(X\)를 모두 구한 것은? (단, \(X\ne\varnothing\))`, ch:[R`\(\{-1\}\)`,R`\(\{2\}\)`,R`\(\{-1,2\}\)`,R`\(\{-1\}, \{2\}\)`,R`\(\{-1\}, \{2\}, \{-1,2\}\)`], a:4, hint:R`\(f(x)=g(x)\)인 \(x\)만 \(X\)에 들어갈 수 있어요.`,
-  sol:R`<div class="step">\(2x^2-1=2x+3\) → \(x^2-x-2=0\) → \(x=-1, 2\).</div><div class="step">\(X\)는 \(\{-1,2\}\)의 공집합 아닌 부분집합 3개 → ⑤.</div>`,
-  v:{ q:R`\(f(x)=x^2\), \(g(x)=3x-2\)가 같도록 하는 \(X\)를 모두 구한 것은?`, ch:[R`\(\{1\}\)`,R`\(\{1,2\}\)`,R`\(\{1\}, \{2\}\)`,R`\(\{1\}, \{2\}, \{1,2\}\)`,R`\(\{2\}\)`], a:3, hint:R`\(x^2-3x+2=0\).`, sol:R`<div class="step">④.</div>` } },
-{ u:'inv', id:'P31-12', tag:'두 대응을 이어서 계산', c:'c3', t:70, input:'5', src:PS('1. 함수','12',141)+' (그림은 앱에서 다시 그림)', q:R`집합 \(X=\{1,2,3,4\}\)에 대하여 \(X\)에서 \(X\)로의 두 함수 \(f\)와 \(g\)가 그림과 같을 때, \((f\circ g^{-1})(1)+(g\circ f)^{-1}(4)\)의 값을 구하시오.`+map3(['1','2','3','4'],['1','2','3','4'],['1','2','3','4'],[[0,1],[1,2],[2,3],[3,0]],[[0,1],[1,0],[2,3],[3,2]],['f','g']), hint:R`\((g\circ f)^{-1}=f^{-1}\circ g^{-1}\).`,
-  sol:R`<div class="step">\(g^{-1}(1)=2\) (1로 들어오는 \(g\) 화살표는 2에서) → \(f(2)=3\).</div><div class="step">\(g^{-1}(4)=3\), \(f^{-1}(3)=2\).</div><div class="step">\(3+2=5\).</div>`,
-  v:{ q:R`같은 그림에서 \((g\circ f)(1)+(f\circ g)^{-1}(2)\)를 구하시오.`+map3(['1','2','3','4'],['1','2','3','4'],['1','2','3','4'],[[0,1],[1,2],[2,3],[3,0]],[[0,1],[1,0],[2,3],[3,2]],['f','g']), input:'3', hint:R`\(g^{-1}(f^{-1}(2))\).`, sol:R`<div class="step">\(g(2)=1\). \(f^{-1}(2)=1\), \(g^{-1}(1)=2\). 합 3.</div>` } },
-{ u:'inv', id:'P31-14', tag:'그래프에서 역함수 값', c:'c4', t:80, src:PS('1. 함수','14',141)+' (그림은 앱에서 다시 그림)', q:R`함수 \(y=f(x)\)의 그래프와 직선 \(y=x\)가 아래 그림과 같을 때, \((f\circ f\circ f)^{-1}(b)\)의 값은? (단, 모든 점선은 \(x\)축 또는 \(y\)축에 평행하다.)`+CHAIN(['a','b','c','d','e'],false,[0.8,1.4,2.1,2.9,3.6]), ch:['a','b','c','d','e'], a:4, hint:R`그림: \(f(e)=d,\ f(d)=c,\ f(c)=b,\ f(b)=a\).`,
-  sol:R`<div class="step">\(f(f(f(k)))=b\) → \(f(f(k))=c\) → \(f(k)=d\) → \(k=e\).</div>`,
-  v:{ q:R`같은 그림에서 \((f\circ f)^{-1}(b)\)의 값은?`+CHAIN(['a','b','c','d','e'],false,[0.8,1.4,2.1,2.9,3.6]), ch:['a','b','c','d','e'], a:3, hint:R`\(f(k)=c\).`, sol:R`<div class="step">\(k=d\).</div>` } },
-{ u:'rat', id:'P32-03', tag:'부분분수로 간단히', c:'c1', t:60, src:PS('2. 유리함수','03',158), q:R`다음 식을 간단히 한 것은? \[\frac1{x^2+x}+\frac1{x^2+3x+2}+\frac1{x^2+5x+6}\]`, ch:[R`\(\dfrac1{x(x+3)}\)`,R`\(\dfrac2{x(x+3)}\)`,R`\(\dfrac3{x(x+3)}\)`,R`\(\dfrac3{x(x+1)}\)`,R`\(\dfrac{3}{(x+1)(x+3)}\)`], a:2, hint:R`분모를 인수분해하면 \(x(x+1)\), \((x+1)(x+2)\), \((x+2)(x+3)\).`,
-  sol:R`<div class="step">각각 쪼개면 \(\left(\dfrac1x-\dfrac1{x+1}\right)+\left(\dfrac1{x+1}-\dfrac1{x+2}\right)+\left(\dfrac1{x+2}-\dfrac1{x+3}\right)\).</div><div class="step">가운데가 지워져 \(\dfrac1x-\dfrac1{x+3}=\dfrac{3}{x(x+3)}\).</div>`,
-  v:{ q:R`\(\dfrac1{x(x+2)}+\dfrac1{(x+2)(x+4)}\)을 간단히 한 것은?`, ch:[R`\(\dfrac1{x(x+4)}\)`,R`\(\dfrac2{x(x+4)}\)`,R`\(\dfrac4{x(x+4)}\)`,R`\(\dfrac2{x(x+2)}\)`,R`\(\dfrac1{(x+2)(x+4)}\)`], a:1, hint:R`분모 차이가 2라 \(\frac12\)을 곱해요.`, sol:R`<div class="step">\(\dfrac12\left(\dfrac1x-\dfrac1{x+4}\right)=\dfrac{2}{x(x+4)}\).</div>` } },
-{ u:'rat', id:'P32-12', tag:'끊긴 정의역의 치역', c:'c3', t:90, src:PS('2. 유리함수','12',159), q:R`유리함수 \(y=\dfrac{4-2x}{x-1}\)의 정의역이 \(\{x\mid-1\le x<1\ 또는\ 1<x\le2\}\)일 때, 치역은?`, ch:[R`\(\{y\mid y\le-3\ 또는\ y\ge0\}\)`,R`\(\{y\mid-3\le y\le0\}\)`,R`\(\{y\mid y\le-2\ 또는\ y\ge0\}\)`,R`\(\{y\mid y<-3\ 또는\ y>0\}\)`,R`\(\{y\mid y\ne-2\}\)`], a:0, hint:R`\(-2+\dfrac2{x-1}\). 점근선 양쪽을 따로.`,
-  sol:R`<div class="step">\(y=-2+\dfrac2{x-1}\), 두 가지 모두 감소.</div><div class="step">왼쪽 \([-1,1)\): \(x=-1\)일 때 \(-3\)에서 시작해 아래로 → \(y\le-3\).</div><div class="step">오른쪽 \((1,2]\): \(x=2\)일 때 0, 위로 끝없이 → \(y\ge0\). ①.</div>`,
-  v:{ q:R`\(y=\dfrac{2x+1}{x-1}\)의 정의역이 \(\{x\mid-2\le x<1\ 또는\ 1<x\le4\}\)일 때 치역은?`, ch:[R`\(y\le1\) 또는 \(y\ge3\)`,R`\(1\le y\le3\)`,R`\(y<1\) 또는 \(y>3\)`,R`\(y\le2\) 또는 \(y\ge3\)`,R`\(y\ne2\)`], a:0, hint:R`\(2+\dfrac3{x-1}\).`, sol:R`<div class="step">\(x=-2\): 1, \(x=4\): 3 → ①.</div>` } },
-/* --- 올림포스 --- */
-{ u:'prop', id:'O5-11', tag:'‘어떤’ 명제의 부정', c:'c3', t:50, input:'36', src:OS('05 명제','11',57,BIN), q:R`실수 전체의 집합에 대하여 명제 ‘어떤 실수 \(x\)에 대하여 \(x^2-12x+k<0\)이다.’의 부정이 참이 되도록 하는 실수 \(k\)의 최솟값을 구하시오.`, hint:R`부정: 모든 \(x\)에 대하여 \(\ge0\).`,
-  sol:R`<div class="step">‘모든 실수 \(x\)에 대하여 \(x^2-12x+k\ge0\)’ → \(\dfrac D4=36-k\le0\) → \(k\ge36\).</div>`,
-  v:{ q:R`‘어떤 실수 \(x\)에 대하여 \(x^2-10x+k<0\)’의 부정이 참인 \(k\)의 최솟값을 구하시오.`, input:'25', hint:R`\(25-k\le0\).`, sol:R`<div class="step">25.</div>` } },
-{ u:'inv', id:'O6-10', tag:'합성함수 값', c:'c1', t:40, src:OS('06 함수','10',71,BIN), q:R`두 함수 \(f(x)=x+3,\ g(x)=5x-4\)에 대하여 \((g\circ f)(2)+(f\circ f)(2)\)의 값은?`, ch:['21','23','25','27','29'], a:4, hint:R`두 번째는 \(f\circ g\)가 아니라 \(f\circ f\)예요.`,
-  sol:R`<div class="step">\(g(f(2))=g(5)=21\), \(f(f(2))=f(5)=8\). 합 29.</div><div class="warn"><b>함정</b>뒤를 \(f\circ g\)로 읽으면 30이 나와서 보기에 없어요. 문제를 꼼꼼히!</div>`,
-  v:{ q:R`\(f(x)=x+2,\ g(x)=3x-1\)일 때 \((g\circ f)(1)+(f\circ f)(1)\)은?`, ch:['11','12','13','14','15'], a:2, hint:R`\(g(3)+f(3)\).`, sol:R`<div class="step">8+5=13.</div>` } },
-{ u:'inv', id:'O6-11', tag:'그래프로 합성 방정식', c:'c1', t:70, src:OS('06 함수','11',71,BIN)+' (그림은 앱에서 다시 그림)', q:R`함수 \(y=f(x)\)의 그래프와 직선 \(y=x\)가 아래와 같을 때, 방정식 \((f\circ f)(x)=c\)의 해는?`+CHAIN(['a','b','c','d','e'],false,[0.8,1.4,2.1,2.9,3.6]), ch:['a','b','c','d','e'], a:4, hint:R`그림: \(f(e)=d,\ f(d)=c,\ f(c)=b,\ f(b)=a\).`,
-  sol:R`<div class="step">\(f(f(x))=c\) → \(f(x)=d\) → \(x=e\).</div>`,
-  v:{ q:R`같은 그림에서 \((f\circ f\circ f)(x)=a\)의 해는?`+CHAIN(['a','b','c','d','e'],false,[0.8,1.4,2.1,2.9,3.6]), ch:['a','b','c','d','e'], a:3, hint:R`\(f(f(x))=b\).`, sol:R`<div class="step">\(f(x)=c\) → \(x=d\).</div>` } },
-{ u:'func', id:'O6-22', tag:'조건을 만족하는 일대일대응 개수', c:'c4', t:240, input:'32', src:OS('06 함수','22',73,'서술형 문제'), q:R`집합 \(X=\{1,2,3,4,5,6\}\)에 대하여 \(X\)에서 \(X\)로의 함수 중에서 다음 조건을 만족시키는 함수 \(f\)의 개수를 구하시오.<div class="key">(가) 함수 \(f\)는 일대일대응이다.<br>(나) \(f(f(1))=1\)<br>(다) \(f(3)=f(2)-f(1)\)</div>`, hint:R`\(f(1)=a\)로 두고 \(a=1\), \(a\ne1\)로 나눠요. \(a\ne1\)이면 \(f(a)=1\).`,
-  sol:R`<div class="step"><b>\(f(1)=1\)일 때</b>: \(f(3)=f(2)-1\). 남은 값 2~6에서 연속한 두 수 \((f(2),f(3))\): (3,2), (4,3), (5,4), (6,5) → 4가지. 나머지 3자리는 \(3!=6\). → 24.</div><div class="step"><b>\(f(1)=2\)</b>: \(f(2)=1\)이라 \(f(3)=-1\) ✘.</div><div class="step"><b>\(f(1)=3\)</b>: \(f(3)=1\), \(f(2)=4\). 나머지 \(3!=6\).</div><div class="step"><b>\(f(1)=4\)</b>: \(f(4)=1\), \(f(2)-f(3)=4\) → (6,2). 나머지 \(2!=2\).</div><div class="step"><b>\(f(1)\ge5\)</b>: 차가 5 이상인 쌍 없음 ✘.</div><div class="step">\(24+6+2=32\).</div>`,
-  v:{ q:R`\(X=\{1,2,3,4\}\)에서 일대일대응 \(f\)가 \(f(f(1))=1\), \(f(3)=f(2)+f(1)\)을 만족시키는 개수를 구하시오.`, input:'3', hint:R`\(f(1)=1\), 2로 나눠요.`, sol:R`<div class="step">\(f(1)=1\): (2,3), (3,4) → 2. \(f(1)=2\): \(f(2)=1, f(3)=3, f(4)=4\) → 1. 합 3.</div>` } },
-{ u:'func', id:'O6-23', tag:'일대일대응이 될 조건 (서술형)', c:'c3', t:120, input:'-19/4', src:OS('06 함수','23',73,'서술형 문제'), q:R`집합 \(X=\{x\mid x\ge a\}\)에서 집합 \(Y=\{y\mid y\ge b\}\)로의 함수 \(f(x)=x^2+2x+5\)의 역함수가 존재하도록 하는 두 실수 \(a, b\)에 대하여 \(a-b\)의 최댓값을 구하시오. <span class="small">분수는 -19/4처럼 입력</span>`, hint:R`꼭짓점 \(x=-1\) 오른쪽에서만 증가. \(b=f(a)\).`,
-  sol:R`<div class="step">\(f(x)=(x+1)^2+4\). 일대일대응이려면 \(a\ge-1\), \(b=f(a)=a^2+2a+5\).</div><div class="step">\(a-b=-a^2-a-5=-\left(a+\dfrac12\right)^2-\dfrac{19}4\).</div><div class="step">\(a=-\dfrac12\ (\ge-1)\)에서 최댓값 \(-\dfrac{19}4\).</div>`,
-  v:{ q:R`\(X=\{x\mid x\ge a\}\)에서 \(Y=\{y\mid y\ge b\}\)로의 \(f(x)=x^2-2x+3\)의 역함수가 존재할 때 \(a-b\)의 최댓값을 구하시오. (분수는 a/b로)`, input:'-3/4', hint:R`\(a\ge1\), \(b=f(a)\).`, sol:R`<div class="step">\(-a^2+3a-3\), \(a=\frac32\)에서 \(-\frac34\).</div>` } },
-{ u:'rat', id:'O7-10', tag:'그래프로 부호 판단 → 사분면', c:'c2', t:120, src:OS('07 유리함수와 무리함수','10',85,BIN)+' (그림은 앱에서 다시 그림)', q:R`유리함수 \(y=\dfrac{ax+1}{x+b}\)의 그래프가 아래와 같을 때, 함수 \(y=\dfrac{bx+3}{x+a}\)의 그래프가 지나는 사분면을 모두 구한 것은? (단, \(a, b\)는 \(ab\ne1,\ ab\ne3\)인 상수이다.)`+PLOT({x0:-4,x1:3,y0:-4,y1:4,w:150,h:150,pw:190},[{fn:x=>(-x+1)/(x+1),a:-0.72,b:3},{fn:x=>(-x+1)/(x+1),a:-4,b:-1.4},{dash:[[-1,-4],[-1,4]]},{dash:[[-4,-1],[3,-1]]}]), ch:['제1, 2, 3사분면','제1, 2, 4사분면','제1, 3, 4사분면','제2, 3, 4사분면','제1, 2, 3, 4사분면'], a:4, hint:R`점근선 위치로 \(a, b\)의 부호부터: 세로 점근선 \(x=-b<0\), 가로 점근선 \(y=a<0\).`,
-  sol:R`<div class="step">그림: 세로 점근선이 왼쪽(\(-b<0\)) → \(b>0\). 가로 점근선이 아래(\(a<0\)).</div><div class="step">새 함수 \(y=b+\dfrac{3-ab}{x+a}\): 점근선 교점 \((-a, b)\)는 1사분면, \(3-ab>0\) (\(ab<0\)이니까).</div><div class="step">\(y\)절편 \(\dfrac3a<0\). 왼쪽 가지가 \(y\)축 아래를 지나고, 멀리 가면 \(y\to b>0\). → 2, 3, 4사분면 + 오른쪽 가지 1사분면. 모든 사분면 ⑤.</div>`,
-  v:{ q:R`위 그림에서 \(a, b\)의 부호로 옳은 것은?`+PLOT({x0:-4,x1:3,y0:-4,y1:4,w:150,h:150,pw:190},[{fn:x=>(-x+1)/(x+1),a:-0.72,b:3},{fn:x=>(-x+1)/(x+1),a:-4,b:-1.4},{dash:[[-1,-4],[-1,4]]},{dash:[[-4,-1],[3,-1]]}]), ch:[R`\(a>0,\ b>0\)`,R`\(a>0,\ b<0\)`,R`\(a<0,\ b>0\)`,R`\(a<0,\ b<0\)`,'알 수 없다'], a:2, hint:R`점근선 \(x=-b\), \(y=a\).`, sol:R`<div class="step">\(-b<0\) → \(b>0\), \(a<0\).</div>` } },
-{ u:'irr', id:'O7-17', tag:'유리함수 그래프 → 무리함수 사분면', c:'c2', t:120, src:OS('07 유리함수와 무리함수','17',86,BIN)+' (그림은 앱에서 다시 그림)', q:R`유리함수 \(y=\dfrac b{x-a}+c\ (b\ne0)\)의 그래프가 아래와 같을 때 (점근선 \(x=-3,\ y=2\)), 무리함수 \(y=\sqrt{cx+b}+a\)의 그래프가 지나는 사분면만을 모두 구한 것은?`+PLOT({x0:-6,x1:4,y0:-4,y1:5,w:170,h:150,pw:200},[{fn:x=>-3/(x+3)+2,a:-6,b:-3.4},{fn:x=>-3/(x+3)+2,a:-2.45,b:4},{dash:[[-3,-4],[-3,5]]},{dash:[[-6,2],[4,2]]},{t:[-3,0,'−3'],dx:-16,dy:12},{t:[0,2,'2'],dx:-10,dy:-3}]), ch:['제1, 2사분면','제1, 4사분면','제1, 2, 3사분면','제1, 3, 4사분면','제2, 3, 4사분면'], a:1, hint:R`\(a=-3,\ c=2\). 오른쪽 가지가 아래에서 올라오니 \(b<0\), \(y\)절편이 양수.`,
-  sol:R`<div class="step">점근선: \(a=-3\), \(c=2\). 오른쪽 가지가 아래에서 올라오니 \(b<0\).</div><div class="step">\(y\)절편 \(\dfrac b3+2>0\) → \(-6<b<0\).</div><div class="step">\(y=\sqrt{2x+b}-3\): 시작점 \(\left(-\dfrac b2,-3\right)\), \(0<-\dfrac b2<3\)이라 4사분면에서 출발해 오른쪽 위로 → 1, 4사분면.</div>`,
-  v:{ q:R`위 그래프에서 \(b\)의 범위는?`, ch:[R`\(b<-6\)`,R`\(-6<b<0\)`,R`\(0<b<6\)`,R`\(b>6\)`,R`\(-3<b<0\)`], a:1, hint:R`\(y\)절편 양수.`, sol:R`<div class="step">\(b<0\), \(\frac b3+2>0\).</div>` } },
-];
-/* 서술형 (자기 채점) */
-ADD_MISS.push(
-{ u:'ineq', id:'M1-24', tag:'산술·기하 오류 찾기 (서술형)', c:'c3', t:300, self:true, src:MSRC('24',357), q:R`\(x>0,\ y>0\)일 때, \((2x+3y)\left(\dfrac2x+\dfrac3y\right)\)의 최솟값을 다음과 같이 구하였다.<div class="key">㉠ \(2x+3y\ge2\sqrt6\sqrt{xy}\) (등호 \(2x=3y\))<br>㉡ \(\dfrac2x+\dfrac3y\ge\dfrac{2\sqrt6}{\sqrt{xy}}\) (등호 \(\dfrac2x=\dfrac3y\))<br>㉢ 따라서 \((2x+3y)\left(\dfrac2x+\dfrac3y\right)\ge24\)<br>㉣ 최솟값은 24이다.</div>1단계: 처음으로 잘못된 부분과 그 이유 / 2단계: 올바른 최솟값과 과정 / 3단계: 등호가 성립하는 경우를 서술하시오.`, hint:R`두 등호 조건이 동시에 될 수 있는지 확인. 올바른 방법은 전개.`,
-  sol:R`<div class="step"><b>1단계</b> <b class="kw">㉢이 틀렸어요</b>. ㉠의 등호(\(2x=3y\))와 ㉡의 등호(\(2y=3x\))가 <b class="kw">동시에 성립하지 않아요</b>. 둘 다 성립하려면 \(x=y=0\)이어야 하는데 \(x, y>0\)이라 불가능. 그래서 24는 실제로 나올 수 없는 값.</div><div class="step"><b>2단계</b> <b class="kw">먼저 전개</b>: \(4+\dfrac{6x}y+\dfrac{6y}x+9=13+6\left(\dfrac xy+\dfrac yx\right)\ge13+6\times2=25\).</div><div class="step"><b>3단계</b> 등호는 \(\dfrac xy=\dfrac yx\), 즉 <b class="kw">\(x=y\)일 때</b>. <b class="kw">최솟값 25</b>.</div>`,
-  keys:['㉢이 잘못되었다고 지적','두 등호 조건(2x=3y, 2y=3x)이 동시에 성립하지 않는다는 이유','식을 전개해 13+6(x/y+y/x) 꼴로 만듦','최솟값 25','등호 조건 x=y'], rubric:['㉢이 틀렸다고 쓰고, 등호 조건이 동시에 성립하지 않는 이유를 썼다 (1점)','전개해서 최솟값 25를 구했다 (2점)','등호가 x = y일 때 성립한다고 썼다 (1점)'],
-  v:{ q:R`\(x, y>0\)일 때 \((x+y)\left(\dfrac1x+\dfrac4y\right)\)의 최솟값과 등호 조건을 서술하시오.`, self:true, hint:R`전개 후 산술·기하.`, sol:R`<div class="step"><b class="kw">전개</b>: \(1+\dfrac{4x}y+\dfrac yx+4\ge5+2\sqrt4=9\). <b class="kw">최솟값 9</b>, 등호는 <b class="kw">\(y=2x\)</b>일 때.</div>`, rubric:['전개했다','최솟값 9를 구했다','등호 조건 y = 2x를 썼다'] } },
-{ u:'irr', id:'M1-25', tag:'무리함수와 직선이 안 만날 조건 (서술형)', c:'c4', t:300, self:true, src:MSRC('25',357), q:R`두 집합 \(A=\{(x,y)\mid y=\sqrt{4x+1}\}\), \(B=\{(x,y)\mid y=x+k\}\)에 대하여 \(A\cap B=\varnothing\)일 때, 실수 \(k\)의 값의 범위를 구하는 과정을 서술하시오.<div class="key">1단계: \(A\cap B=\varnothing\)일 때 위치 관계 [1점]<br>2단계: 직선이 그래프와 접할 때의 \(k\) [2점]<br>3단계: \(k\)의 범위 [2점]</div>`, hint:R`경계 두 개: 시작점 \(\left(-\frac14,0\right)\)을 지날 때, 접할 때.`,
-  sol:R`<div class="step"><b>1단계</b> \(A\cap B=\varnothing\)은 <b class="kw">무리함수 그래프와 직선이 만나지 않는다</b>는 뜻.</div>`+PLOT({x0:-1,x1:3,y0:-1,y1:4,w:160,h:130,pw:200},[{fn:x=>Math.sqrt(4*x+1),a:-0.25,b:3},{fn:x=>x+1.25,a:-1,b:2.7,cls:'c3'},{fn:x=>x+0.25,a:-1,b:3,cls:'c2'},{dot:[-0.25,0]},{t:[1.6,3.3,'k=5/4'],fs:9},{t:[2.2,2.1,'k=1/4'],fs:9}])+R`<div class="step"><b>2단계</b> \((x+k)^2=4x+1\) → \(x^2+(2k-4)x+k^2-1=0\). <b class="kw">접하려면 판별식 \(D=0\)</b>: \(\dfrac D4=(k-2)^2-(k^2-1)=0\) → <b class="kw">\(k=\dfrac54\)</b>.</div><div class="step"><b>3단계</b> <b class="kw">시작점 \(\left(-\frac14,0\right)\)을 지날 때 \(k=\dfrac14\)</b>. 직선이 이보다 아래(\(k<\frac14\))면 안 만나고, 접선보다 위(\(k>\frac54\))도 안 만나요.</div><div class="step">답: <b class="kw">\(k<\dfrac14\) 또는 \(k>\dfrac54\)</b>.</div>`,
-  keys:['그래프와 직선이 만나지 않는다는 해석','연립 후 판별식 D=0으로 접하는 k=5/4','시작점 (-1/4, 0)을 지날 때 k=1/4','범위 k<1/4 또는 k>5/4'], rubric:['만나지 않는다는 뜻을 썼다 (1점)','판별식으로 접할 때 k = 5/4를 구했다 (2점)','시작점 조건 k = 1/4을 찾고 범위 k < 1/4 또는 k > 5/4를 썼다 (2점)'],
-  v:{ q:R`\(y=\sqrt{x+1}\)과 \(y=x+k\)가 만나지 않는 \(k\)의 범위를 서술하시오.`, self:true, hint:R`시작점 \((-1,0)\).`, sol:R`<div class="step"><b class="kw">접할 때</b> \(x^2+(2k-1)x+k^2-1=0\), \(D=0\) → <b class="kw">\(k=\dfrac54\)</b>. <b class="kw">시작점 \((-1,0)\) 지날 때 \(k=1\)</b>. 답 <b class="kw">\(k<1\) 또는 \(k>\dfrac54\)</b>.</div>`, rubric:['접할 때 k = 5/4','시작점 지날 때 k = 1','범위를 바르게 썼다'] } },
-{ u:'prop', id:'O5-23', tag:'대우를 이용한 증명 (서술형)', c:'c6', t:240, self:true, src:OS('05 명제','23',59,'서술형 문제'), q:R`명제 ‘자연수 \(n\)에 대하여 \(n^2\)이 짝수이면 \(n\)은 짝수이다.’의 대우를 이용하여 명제가 참임을 증명하시오.`, hint:R`대우: \(n\)이 홀수이면 \(n^2\)도 홀수. \(n=2k-1\)로 놓아요.`,
-  sol:R`<div class="step"><b class="kw">대우: ‘\(n\)이 홀수이면 \(n^2\)은 홀수이다.’</b></div><div class="step"><b class="kw">\(n=2k-1\)</b> (\(k\)는 자연수)로 놓으면 <b class="kw">\(n^2=2(2k^2-2k)+1\)</b>.</div><div class="step">\(2k^2-2k\)는 0 이상의 정수라 \(n^2\)은 홀수. <b class="kw">대우가 참이므로 원래 명제도 참</b>.</div>`,
-  keys:['대우: n이 홀수이면 n²은 홀수','n=2k-1(또는 2k+1)로 놓음','n²=2(…)+1 꼴로 정리해 홀수임을 보임','대우가 참이므로 원래 명제도 참'], rubric:['대우를 정확히 썼다','n = 2k − 1로 놓고 n²을 2(…)+1 꼴로 정리했다','대우가 참이므로 원래 명제도 참이라고 마무리했다'],
-  v:{ q:R`‘자연수 \(n\)에 대하여 \(n^2\)이 홀수이면 \(n\)은 홀수이다’를 대우로 증명하시오.`, self:true, hint:R`\(n=2k\).`, sol:R`<div class="step"><b class="kw">대우: \(n\)이 짝수이면 \(n^2\)은 짝수</b>. <b class="kw">\(n=2k\)</b> → <b class="kw">\(n^2=2(2k^2)\)</b> 짝수. <b class="kw">대우가 참이니 원래 명제도 참</b>.</div>`, rubric:['대우를 썼다','n = 2k로 계산했다','결론을 썼다'] } }
-);
-ADD_MISS.forEach(p=>{ const u = UNITS.find(x=>x.id===p.u); if (u && !u.problems.some(q=>q.id===p.id)) u.problems.push(p); });
-/* ===== 고쟁이 공통수학2 ===== */
-const GJ = (no, pg, lv)=>`고쟁이 공통수학2 p.${pg}, ${no}번 (${lv||'STEP 2 심화 유형'})`;
-const VN = (inner)=>`<svg class="fig" viewBox="0 0 120 80" width="112" style="display:block"><rect x="2" y="2" width="116" height="76" rx="6" class="ax"/>${inner}</svg>`;
-const VEN5 = [
-  VN('<circle cx="48" cy="34" r="20" class="c1"/><circle cx="72" cy="34" r="20" class="c2"/><circle cx="60" cy="52" r="20" class="c3"/><text x="34" y="20" font-size="9">A</text><text x="82" y="20" font-size="9">B</text><text x="58" y="76" font-size="9">C</text>'),
-  VN('<circle cx="42" cy="42" r="26" class="c2"/><circle cx="42" cy="46" r="13" class="c1"/><circle cx="92" cy="42" r="18" class="c3"/><text x="38" y="50" font-size="9">A</text><text x="34" y="24" font-size="9">B</text><text x="88" y="46" font-size="9">C</text>'),
-  VN('<circle cx="50" cy="42" r="28" class="c1"/><circle cx="40" cy="46" r="12" class="c2"/><circle cx="84" cy="42" r="20" class="c3"/><text x="36" y="50" font-size="9">B</text><text x="46" y="22" font-size="9">A</text><text x="90" y="46" font-size="9">C</text>'),
-  VN('<circle cx="46" cy="42" r="26" class="c2"/><circle cx="38" cy="46" r="11" class="c1"/><circle cx="82" cy="42" r="22" class="c3"/><text x="34" y="50" font-size="9">A</text><text x="46" y="24" font-size="9">B</text><text x="90" y="46" font-size="9">C</text>'),
-  VN('<circle cx="30" cy="42" r="20" class="c1"/><circle cx="60" cy="42" r="20" class="c2"/><circle cx="90" cy="42" r="20" class="c3"/><text x="24" y="46" font-size="9">A</text><text x="56" y="46" font-size="9">B</text><text x="86" y="46" font-size="9">C</text>')
-];
-const HYP = (p,q,k,lab)=>SMALL([{fn:x=>k/(x-p)+q,a:-4,b:p-0.15},{fn:x=>k/(x-p)+q,a:p+0.15,b:4},{dash:[[p,-4],[p,4]]},{dash:[[-4,q],[4,q]]},{t:[p,q,lab],dx:(p>0?-36:4),dy:(q>0?-5:12),fs:9}],{x0:-4.5,x1:4.5,y0:-4,y1:4});
-const LIN647 = PLOT({x0:-4,x1:4,y0:-1,y1:4,w:170,h:110,pw:200},[{fn:x=>(x+3)/2,a:-4,b:4},{fn:x=>-x+3,a:-1,b:4,cls:'c3'},{dot:[1,2]},{dash:[[0,2],[1,2],[1,0]]},{t:[-3,0,'−3'],dx:-8,dy:12},{t:[3,0,'3'],dy:12},{t:[1,0,'1'],dy:12},{t:[0,2,'2'],dx:-10,dy:4},{t:[3,3.4,'f'],fs:10},{t:[-0.9,3.6,'g'],fs:10}]);
-const G650 = (f, p, q)=>PLOT({x0:-3,x1:6,y0:-3,y1:5,w:170,h:140,pw:200},[{fn:f,a:-3,b:p-0.2},{fn:f,a:p+0.2,b:6},{dash:[[p,-3],[p,5]]},{dash:[[-3,q],[6,q]]}]);
-const ADD_GJ = [
-/* --- 명제 --- */
-{ u:'prop', id:'G402', tag:'조건의 부정 (많아야·적어도)', c:'c1', t:50, src:GJ('402',112), q:R`조건 ‘집합 \(X\)의 원소 중 10보다 작은 수는 많아야 4개이다.’의 부정으로 옳은 것은?`, ch:['집합 X의 원소 중 10 이상인 수는 많아야 4개이다.','집합 X의 원소 중 적어도 4개는 10보다 작다.','집합 X의 원소 중 적어도 5개는 10보다 작다.','집합 X의 원소 중 10 이상인 수가 4개 이상이다.','집합 X의 원소 중 10 이상인 수가 적어도 5개이다.'], a:2, hint:R`‘많아야 4개’ = 4개 이하. 부정은?`,
-  sol:R`<div class="step">‘많아야 4개’는 ‘4개 이하’. 부정은 ‘5개 이상’ = ‘적어도 5개’.</div><div class="step">바뀌는 건 개수뿐이고 ‘10보다 작은 수’는 그대로 → ③.</div>`,
-  v:{ q:R`‘집합 \(X\)의 원소 중 짝수는 적어도 3개이다.’의 부정은?`, ch:['짝수는 많아야 3개이다.','짝수는 많아야 2개이다.','홀수는 적어도 3개이다.','짝수는 적어도 2개이다.','짝수가 하나도 없다.'], a:1, hint:R`3개 이상의 부정.`, sol:R`<div class="step">2개 이하 = 많아야 2개.</div>` } },
-{ u:'prop', id:'G403', tag:'참인 명제 고르기', c:'c2', t:80, src:GJ('403',112), q:R`두 실수 \(x, y\)에 대하여 보기에서 참인 명제만을 있는 대로 고른 것은?<div class="key">ㄱ. \(x<y<0\)이면 \(\dfrac1x>\dfrac1y\)이다.<br>ㄴ. \(x^2>y^2\)이면 \(x>y\)이다.<br>ㄷ. \(x^2+y^2=0\)이면 \(|x|+|y|=0\)이다.<br>ㄹ. \(x\ne3\)이면 \(x^2-5x+6\ne0\)이다.<br>ㅁ. \(x+y\ge2\)이면 \(x\ge1\)이고 \(y\ge1\)이다.</div>`, ch:['ㄱ, ㄴ','ㄱ, ㄷ','ㄴ, ㄹ','ㄱ, ㄷ, ㄹ','ㄱ, ㄷ, ㄹ, ㅁ'], a:1, hint:R`ㄹ은 대우로 보면 쉬워요.`,
-  sol:R`<div class="step">ㄱ: 예) \(-2<-1\)이면 \(-\frac12>-1\) ✔ (음수끼리는 역수 대소가 그대로).</div><div class="step">ㄴ: \(x=-3, y=1\) ✘. ㄷ: 둘 다 0 ✔.</div><div class="step">ㄹ: \(x=2\)이면 \(x\ne3\)인데 \(x^2-5x+6=0\) ✘. ㅁ: \(x=3, y=0\) ✘.</div>`,
-  v:{ q:R`참인 명제는?<div class="key">ㄱ. \(0<x<y\)이면 \(\dfrac1x>\dfrac1y\) ㄴ. \(x^2=y^2\)이면 \(x=y\) ㄷ. \(|x|+|y|=0\)이면 \(x=y=0\) ㄹ. \(x\ne1\)이면 \(x^2\ne1\)</div>`, ch:['ㄱ, ㄴ','ㄱ, ㄷ','ㄴ, ㄹ','ㄱ, ㄷ, ㄹ','ㄷ, ㄹ'], a:1, hint:R`ㄹ 반례 \(-1\).`, sol:R`<div class="step">ㄱ, ㄷ.</div>` } },
-{ u:'prop', id:'G404', tag:'집합의 원소 개수와 명제', c:'c2', t:80, src:GJ('404',112), q:R`두 집합 \(A, B\)에 대하여 보기에서 거짓인 명제만을 있는 대로 고른 것은?<div class="key">ㄱ. \(n(A)=0\)이면 \(A=\varnothing\)이다.<br>ㄴ. \(n(A)=n(B)\)이면 \(A=B\)이다.<br>ㄷ. \(A\subset B\)이면 \(n(A)<n(B)\)이다.<br>ㄹ. \(A\subset B\)이고 \(n(A)\ge n(B)\)이면 \(A=B\)이다.<br>ㅁ. \(n(A-B)=0\)이면 \(n(A)=n(B)\)이다.</div>`, ch:['ㄱ, ㄴ','ㄴ, ㄷ','ㄴ, ㄷ, ㅁ','ㄷ, ㄹ, ㅁ','ㄱ, ㄹ, ㅁ'], a:2, hint:R`ㄷ: \(A=B\)일 때는?`,
-  sol:R`<div class="step">ㄴ: \(\{1\}\)과 \(\{2\}\)는 개수는 같지만 다른 집합 ✘.</div><div class="step">ㄷ: \(A=B\)면 \(A\subset B\)인데 개수가 같아요 ✘. ㄹ: 부분집합인데 개수가 같거나 크면 같은 집합 ✔.</div><div class="step">ㅁ: \(A-B=\varnothing\)은 \(A\subset B\)일 뿐, \(B\)가 더 클 수 있어요 ✘. 거짓: ㄴ, ㄷ, ㅁ.</div>`,
-  v:{ q:R`거짓인 명제만 고르면?<div class="key">ㄱ. \(A\subset B\)이면 \(n(A)\le n(B)\) ㄴ. \(n(A)<n(B)\)이면 \(A\subset B\) ㄷ. \(A=B\)이면 \(n(A)=n(B)\)</div>`, ch:['ㄱ','ㄴ','ㄷ','ㄱ, ㄴ','ㄴ, ㄷ'], a:1, hint:R`ㄴ 반례.`, sol:R`<div class="step">\(\{5\}\), \(\{1,2\}\) → ㄴ 거짓.</div>` } },
-{ u:'prop', id:'G405', tag:'명제가 참이 되는 집합 개수', c:'c2', t:70, src:GJ('405',112), q:R`전체집합 \(U=\{x\mid x\)는 10 이하의 자연수\(\}\)에 대하여 두 조건 \(p, q\)의 진리집합을 각각 \(P, Q\)라 하자. 조건 \(p\)가 ‘\(p\): \(x\)는 소수이다.’일 때, 명제 \(\sim p\to q\)가 참이 되도록 하는 집합 \(Q\)의 개수는?`, ch:['8','16','32','64','128'], a:1, hint:R`\(P^C\subset Q\). \(P^C\)는 반드시 포함, 나머지는 자유.`,
-  sol:R`<div class="step">\(P=\{2,3,5,7\}\), \(P^C=\{1,4,6,8,9,10\}\) (6개)는 \(Q\)에 꼭 들어가요.</div><div class="step">남은 4개(2, 3, 5, 7)는 넣어도 빼도 됨 → \(2^4=16\).</div>`,
-  v:{ q:R`\(U=\{1,\dots,8\}\), \(p\): \(x\)는 짝수일 때 \(\sim p\to q\)가 참인 \(Q\)의 개수는?`, ch:['8','16','32','64','128'], a:1, hint:R`홀수 4개 필수.`, sol:R`<div class="step">\(2^4=16\).</div>` } },
-{ u:'prop', id:'G406', tag:'반례가 하나뿐일 조건', c:'c2', t:100, src:GJ('406',112), q:R`두 조건 \(p: x\le2\) 또는 \(x\ge5\), \(q: -3\le x\le k\)에 대하여 명제 \(\sim q\to p\)가 거짓임을 보이는 정수인 반례가 \(x=4\)뿐일 때, 실수 \(k\)의 값의 범위는? (단, \(k>-3\))`, ch:[R`\(k<4\)`,R`\(k\ge5\)`,R`\(2\le k<3\)`,R`\(3\le k<4\)`,R`\(4\le k<5\)`], a:3, hint:R`반례 = \(\sim q\)인데 \(p\)가 아닌 것. \(p\)가 아닌 정수는 3, 4.`,
-  sol:R`<div class="step">\(p\)가 아닌 정수: 3, 4. 이 중 \(\sim q\)(\(x>k\))에 들어가는 게 4뿐이어야 해요.</div><div class="step">4는 \(x>k\) → \(k<4\). 3은 아님 → \(k\ge3\). \(3\le k<4\).</div>`,
-  v:{ q:R`\(p: x\le1\) 또는 \(x\ge5\), \(q: -2\le x\le k\)에서 \(\sim q\to p\)의 정수 반례가 \(x=4\)뿐일 때 \(k\)의 범위는?`, ch:[R`\(k<3\)`,R`\(3\le k<4\)`,R`\(2\le k<3\)`,R`\(k\ge4\)`,R`\(4\le k<5\)`], a:1, hint:R`\(p\)가 아닌 정수 2, 3, 4.`, sol:R`<div class="step">4만 \(x>k\) → \(3\le k<4\).</div>` } },
-{ u:'prop', id:'G413', tag:'두 문자 ‘어떤’의 부정', c:'c3', t:70, src:GJ('413',114), q:R`전체집합 \(U=\{-1,0,1\}\)에 대하여 명제 ‘\(x\in U,\ y\in U\)인 어떤 \(x, y\)에 대하여 \(|x-y|>2\)이다.’의 부정과 그 참, 거짓을 바르게 나열한 것은?`, ch:['어떤 x, y에 대하여 |x−y|≤2이다. (참)','어떤 x, y에 대하여 |x−y|≤2이다. (거짓)','모든 x, y에 대하여 |x−y|>2이다. (거짓)','모든 x, y에 대하여 |x−y|≤2이다. (참)','모든 x, y에 대하여 |x−y|≤2이다. (거짓)'], a:3, hint:R`\(|x-y|\)의 최댓값은?`,
-  sol:R`<div class="step">부정: ‘모든 \(x, y\)에 대하여 \(|x-y|\le2\)’.</div><div class="step">가장 멀어도 \(|-1-1|=2\)라 참 → ④.</div>`,
-  v:{ q:R`\(U=\{0,1,2\}\)에서 ‘어떤 \(x, y\)에 대하여 \(x+y>4\)’의 부정과 참·거짓은?`, ch:['어떤 x, y: x+y≤4 (참)','어떤 x, y: x+y≤4 (거짓)','모든 x, y: x+y>4 (거짓)','모든 x, y: x+y≤4 (참)','모든 x, y: x+y≤4 (거짓)'], a:3, hint:R`최대 4.`, sol:R`<div class="step">④.</div>` } },
-{ u:'prop', id:'G414', tag:'‘어떤’이 참일 조건', c:'c3', t:60, src:GJ('414',114), q:R`명제 ‘\(n\le x\le n+3\)인 어떤 실수 \(x\)에 대하여 \(-2<x\le3\)이다.’가 참이 되도록 하는 정수 \(n\)의 개수는?`, ch:['6','7','8','9','10'], a:2, hint:R`두 구간이 조금이라도 겹치면 참.`,
-  sol:R`<div class="step">\([n,n+3]\)과 \((-2,3]\)이 겹쳐야: \(n\le3\), \(n+3>-2\) → \(-5<n\le3\).</div><div class="step">정수 \(-4\sim3\) → 8개.</div>`,
-  v:{ q:R`‘\(n\le x\le n+2\)인 어떤 \(x\)에 대하여 \(0<x\le4\)’가 참인 정수 \(n\)의 개수는?`, ch:['4','5','6','7','8'], a:2, hint:R`\(-2<n\le4\).`, sol:R`<div class="step">\(-1\sim4\) → 6.</div>` } },
-{ u:'prop', id:'G415', tag:'두 명제가 모두 거짓', c:'c3', t:100, src:GJ('415',114), q:R`두 명제 ‘모든 실수 \(x\)에 대하여 \(x^2+2ax+5>0\)이다.’, ‘어떤 실수 \(x\)에 대하여 \(x^2-ax+2a\le0\)이다.’가 모두 거짓이 되도록 하는 정수 \(a\)의 개수는?`, ch:['4','5','6','7','8'], a:1, hint:R`첫째 거짓 → \(D\ge0\). 둘째 거짓 → 부정 ‘모든 \(x\): \(>0\)’ 참 → \(D<0\).`,
-  sol:R`<div class="step">첫째 거짓: \(\dfrac D4=a^2-5\ge0\) → \(|a|\ge\sqrt5\).</div><div class="step">둘째 거짓 = ‘모든 \(x\)에 대하여 \(x^2-ax+2a>0\)’ 참 → \(a^2-8a<0\) → \(0<a<8\).</div><div class="step">겹치면 \(\sqrt5\le a<8\) → 정수 3~7, 5개.</div>`,
-  v:{ q:R`‘모든 \(x\): \(x^2+2ax+4>0\)’, ‘어떤 \(x\): \(x^2-ax+a\le0\)’이 모두 거짓인 정수 \(a\)의 개수는?`, ch:['1','2','3','4','5'], a:1, hint:R`\(|a|\ge2\), \(0<a<4\).`, sol:R`<div class="step">\(2, 3\) → 2.</div>` } },
-{ u:'prop', id:'G416', tag:'부정이 참이 될 범위', c:'c3', t:120, src:GJ('416',114), q:R`명제 ‘어떤 실수 \(x\)에 대하여 \(\sqrt{(x^2-x)k-(3x^2-3x-2)}\)의 값은 실수가 아니다.’의 부정이 참이 되도록 하는 실수 \(k\)의 값의 범위는?`, ch:[R`\(k\ge3\)`,R`\(3\le k\le11\)`,R`\(3<k<11\)`,R`\(k\le11\)`,R`\(0\le k\le8\)`], a:1, hint:R`부정: 모든 \(x\)에서 근호 안 \(\ge0\). \(t=x^2-x\)로 치환.`,
-  sol:R`<div class="step">부정: 모든 \(x\)에 대하여 \((k-3)(x^2-x)+2\ge0\).</div><div class="step">\(t=x^2-x\ge-\dfrac14\) (위로는 끝없이). \((k-3)t+2\ge0\)이 모든 \(t\ge-\frac14\)에서 성립하려면 \(k-3\ge0\)이고 \(t=-\frac14\)에서도 \(\ge0\).</div><div class="step">\(-\dfrac{k-3}4+2\ge0\) → \(k\le11\). 답 \(3\le k\le11\).</div>`,
-  v:{ q:R`‘어떤 \(x\)에 대하여 \(\sqrt{(x^2+x)k-(2x^2+2x-1)}\)이 실수가 아니다’의 부정이 참인 \(k\)의 범위는?`, ch:[R`\(k\ge2\)`,R`\(2\le k\le6\)`,R`\(2<k<6\)`,R`\(k\le6\)`,R`\(0\le k\le4\)`], a:1, hint:R`\(t\ge-\frac14\).`, sol:R`<div class="step">\(k-2\ge0\), \(-\frac{k-2}4+1\ge0\) → ②.</div>` } },
-{ u:'prop', id:'G417', tag:'벤 다이어그램 고르기', c:'c3', t:60, src:GJ('417',114,'STEP 2 심화 유형 · 교육청 기출')+' (그림은 앱에서 다시 그림)', q:R`전체집합 \(U\)의 공집합이 아닌 세 부분집합 \(A, B, C\)에 대하여 다음 두 명제가 참이 되도록 하는 벤 다이어그램은?<div class="key">(가) 어떤 \(x\in A\)에 대하여 \(x\notin B\)이다.<br>(나) 모든 \(x\in B\)에 대하여 \(x\notin C\)이다.</div>`, ch:VEN5, a:2, hint:R`(가) \(A\not\subset B\), (나) \(B\cap C=\varnothing\).`,
-  sol:R`<div class="step">(가): \(A\)에 \(B\) 밖의 원소가 있다 → \(A\not\subset B\). (나): \(B\)와 \(C\)는 안 겹친다.</div><div class="step">①⑤는 \(B, C\)가 겹치고, ②④는 \(A\subset B\). ③만 둘 다 만족.</div>`,
-  v:{ q:R`(가) 모든 \(x\in A\)에 대하여 \(x\in B\), (나) 어떤 \(x\in B\)에 대하여 \(x\in C\)가 참인 그림은?`, ch:VEN5, a:3, hint:R`\(A\subset B\), \(B\cap C\ne\varnothing\).`, sol:R`<div class="step">④.</div>` } },
-{ u:'prop', id:'G422', tag:'충분조건과 대우', c:'c5', t:50, input:'4', src:GJ('422',116), q:R`실수 \(x\)에 관한 두 조건 \(p: x^2+ax-5\ne0\), \(q: x-1\ne0\)에 대하여 \(p\)가 \(q\)이기 위한 충분조건일 때, 상수 \(a\)의 값을 구하시오.`, hint:R`\(p\Rightarrow q\)의 대우.`,
-  sol:R`<div class="step">대우: \(x=1\)이면 \(x^2+ax-5=0\). \(1+a-5=0\) → \(a=4\).</div>`,
-  v:{ q:R`\(p: x^2+ax-6\ne0\), \(q: x-2\ne0\)에서 \(p\)가 \(q\)의 충분조건일 때 \(a\)를 구하시오.`, input:'1', hint:R`\(x=2\).`, sol:R`<div class="step">\(4+2a-6=0\).</div>` } },
-{ u:'prop', id:'G423', tag:'절댓값 조건의 필요충분', c:'c5', t:90, src:GJ('423',116), q:R`두 조건 \(p, q\)에 대하여 보기에서 \(p\)가 \(q\)이기 위한 필요충분조건인 것을 있는 대로 고른 것은? (단, \(x, y\)는 실수)<div class="key">ㄱ. \(p: |x-y|=|x+y|\), \(q: x=0\) 또는 \(y=0\)<br>ㄴ. \(p: |x|+|y|=|x+y|\), \(q: x\ge0\)이고 \(y\ge0\)<br>ㄷ. \(p: |x+y|<|x-y|\), \(q: xy<0\)</div>`, ch:['ㄱ','ㄴ','ㄱ, ㄴ','ㄱ, ㄷ','ㄱ, ㄴ, ㄷ'], a:3, hint:R`양변 제곱하면 \(xy\)만 남아요.`,
-  sol:R`<div class="step">ㄱ: 제곱하면 \(-2xy=2xy\) → \(xy=0\) ⟺ \(q\) ✔.</div><div class="step">ㄴ: \(xy\ge0\) (둘 다 음수도 OK)라 \(q\)보다 넓어요 ✘.</div><div class="step">ㄷ: 제곱하면 \(4xy<0\) ⟺ \(xy<0\) ✔.</div>`,
-  v:{ q:R`필요충분조건인 것은?<div class="key">ㄱ. \(p: |x|+|y|=0\), \(q: x=y=0\) ㄴ. \(p: xy=0\), \(q: x=0\) ㄷ. \(p: |x+y|=|x|+|y|\), \(q: xy\ge0\)</div>`, ch:['ㄱ','ㄴ','ㄱ, ㄴ','ㄱ, ㄷ','ㄱ, ㄴ, ㄷ'], a:3, hint:R`ㄴ은 \(y=0\)도 됨.`, sol:R`<div class="step">ㄱ, ㄷ.</div>` } },
-{ u:'prop', id:'G424', tag:'필요조건과 근', c:'c5', t:80, src:GJ('424',116), q:R`실수 \(x\)에 대하여 두 조건 \(p: x^2-2x-15>0\), \(q: x^2=a\)이다. \(\sim q\)가 \(p\)이기 위한 필요조건이 되도록 하는 자연수 \(a\)의 개수는?`, ch:['9','11','13','15','17'], a:0, hint:R`\(p\Rightarrow\sim q\): \(P\)와 \(Q\)가 안 겹쳐야.`,
-  sol:R`<div class="step">\(P\): \(x<-3\) 또는 \(x>5\). \(Q=\{\pm\sqrt a\}\).</div><div class="step">\(\pm\sqrt a\)가 둘 다 \([-3,5]\) 안에 → \(\sqrt a\le3\) → \(a\le9\). 자연수 9개.</div>`,
-  v:{ q:R`\(p: x^2-x-6>0\), \(q: x^2=a\)에서 \(\sim q\)가 \(p\)의 필요조건인 자연수 \(a\)의 개수는?`, ch:['2','3','4','5','6'], a:2, hint:R`\(\pm\sqrt a\in[-2,3]\).`, sol:R`<div class="step">\(\sqrt a\le2\) → 4개.</div>` } },
-{ u:'prop', id:'G425', tag:'충분이면서 필요', c:'c5', t:90, src:GJ('425',116), q:R`세 조건 \(p: -1\le x<2\) 또는 \(x\ge5\), \(q: x>a\), \(r: x\ge b\)일 때, \(p\)는 \(q\)이기 위한 충분조건이면서 \(r\)이기 위한 필요조건이다. 두 정수 \(a, b\)에 대하여 \(a\)의 최댓값과 \(b\)의 최솟값의 합은?`, ch:['2','3','4','5','6'], a:1, hint:R`\(p\Rightarrow q\), \(r\Rightarrow p\).`,
-  sol:R`<div class="step">\(P\subset(a,\infty)\): \(-1\)이 들어가야 하니 \(a<-1\) → 최댓값 \(-2\).</div><div class="step">\([b,\infty)\subset P\): \(b\ge5\) → 최솟값 5. 합 3.</div>`,
-  v:{ q:R`\(p: 0\le x<3\) 또는 \(x\ge6\), \(q: x>a\), \(r: x\ge b\)에서 \(p\)가 \(q\)의 충분, \(r\)의 필요조건일 때 정수 \(a\) 최댓값과 \(b\) 최솟값의 합은?`, ch:['3','4','5','6','7'], a:2, hint:R`\(a<0\), \(b\ge6\).`, sol:R`<div class="step">\(-1+6=5\).</div>` } },
-{ u:'prop', id:'G426', tag:'집합 조건의 충분·필요', c:'c5', t:90, src:GJ('426',116), q:R`세 부분집합 \(A, B, C\)에 대한 두 조건 \(p, q\)에 대하여 보기에서 \(p\)가 \(q\)이기 위한 충분조건이지만 필요조건이 아닌 것을 있는 대로 고른 것은?<div class="key">ㄱ. \(p: A\cap B=A\), \(q: A\cup B=B\)<br>ㄴ. \(p: A=B^C\), \(q: A\cup B=U\)<br>ㄷ. \(p: A\subset B\) 또는 \(A\subset C\), \(q: A\subset(B\cup C)\)</div>`, ch:['ㄱ','ㄴ','ㄷ','ㄱ, ㄷ','ㄴ, ㄷ'], a:4, hint:R`ㄱ은 둘 다 \(A\subset B\).`,
-  sol:R`<div class="step">ㄱ: 둘 다 \(A\subset B\)라 필요충분 ✘.</div><div class="step">ㄴ: \(A=B^C\)이면 합집합이 \(U\) ✔. 거꾸로는 \(A=U\)여도 되니 아님 ✔.</div><div class="step">ㄷ: 앞이면 뒤 ✔. 거꾸로는 \(A\)가 \(B, C\)에 걸쳐 있을 수 있어서 아님 ✔.</div>`,
-  v:{ q:R`\(p\)가 \(q\)의 충분조건이지만 필요조건이 아닌 것은?<div class="key">ㄱ. \(p: A\subset B\), \(q: A\cap B=A\) ㄴ. \(p: A=\varnothing\), \(q: A\subset B\) ㄷ. \(p: A\cup B=A\), \(q: B\subset A\)</div>`, ch:['ㄱ','ㄴ','ㄷ','ㄱ, ㄴ','ㄴ, ㄷ'], a:1, hint:R`ㄱ, ㄷ은 같은 말.`, sol:R`<div class="step">ㄴ.</div>` } },
-/* --- 함수 --- */
-{ u:'func', id:'G517', tag:'함수 판별 (가우스 포함)', c:'c1', t:100, src:GJ('517',143), q:R`보기 중 집합 \(\{-2,-1,0,1,2\}\)에서 집합 \(\{-3,-2,-1,0,1,2,3\}\)으로의 함수인 것의 개수는? (단, \([x]\)는 \(x\)보다 크지 않은 최대의 정수이다.)<div class="key">ㄱ. \(f(x)=x^2-4\) ㄴ. \(g(x)=\sqrt{x^2}+1\) ㄷ. \(h(x)=\left[-\dfrac{4x^2}5\right]\)<br>ㄹ. \(i(x)=\begin{cases}2x+1&(x\le0)\\x-4&(x>0)\end{cases}\) ㅁ. \(j(x)=|1-x|\)</div>`, ch:['1','2','3','4','5'], a:2, hint:R`다섯 값을 다 넣어 보세요. 공역은 \(-3\sim3\).`,
-  sol:R`<div class="step">ㄱ: \(f(0)=-4\) ✘. ㄴ: \(|x|+1\) → 3, 2, 1, 2, 3 ✔.</div><div class="step">ㄷ: \(x=2\)이면 \(\left[-\frac{16}5\right]=[-3.2]=-4\) ✘.</div><div class="step">ㄹ: \(-3,-1,1,-3,-2\) ✔. ㅁ: 3, 2, 1, 0, 1 ✔. 3개.</div>`,
-  v:{ q:R`\(\{-1,0,1,2\}\)에서 \(\{-1,0,1,2,3\}\)으로의 함수인 것의 개수는?<div class="key">ㄱ. \(x^2-1\) ㄴ. \(2x+1\) ㄷ. \(|x|+1\) ㄹ. \(x^3\)</div>`, ch:['1','2','3','4','5'], a:1, hint:R`\(x=2\).`, sol:R`<div class="step">ㄱ, ㄷ → 2.</div>` } },
-{ u:'func', id:'G518', tag:'f=g가 되는 정의역 개수', c:'c2', t:50, src:GJ('518',143), q:R`공집합이 아닌 집합 \(X\)를 정의역으로 하는 두 함수 \(f(x)=|4x|\), \(g(x)=x^2\)에 대하여 \(f=g\)가 되도록 하는 모든 집합 \(X\)의 개수는?`, ch:['3','4','5','6','7'], a:4, hint:R`\(|4x|=x^2\)의 해.`,
-  sol:R`<div class="step">\(x^2=4|x|\) → \(|x|(|x|-4)=0\) → \(x=0, \pm4\).</div><div class="step">공집합 아닌 부분집합 \(2^3-1=7\).</div>`,
-  v:{ q:R`\(f(x)=|3x|\), \(g(x)=x^2+2\)에서 \(f=g\)가 되는 \(X\)의 개수는?`, ch:['7','8','15','16','31'], a:2, hint:R`\(|x|=1, 2\).`, sol:R`<div class="step">해 4개 → 15.</div>` } },
-{ u:'func', id:'G519', tag:'치역 조건과 정의역 개수', c:'c4', t:150, input:'189', src:GJ('519',143), q:R`집합 \(S=\{n\mid1\le n\le50,\ n\)은 3의 배수\(\}\)의 공집합이 아닌 부분집합 \(X\)에 대하여 \(X\)를 정의역으로 하는 함수 \(f(n)=(n\)을 7로 나눈 나머지\()\)의 치역이 \(\{1,2,3,4\}\)가 되도록 하는 집합 \(X\)의 개수를 구하시오.`, hint:R`나머지별로 \(S\)의 원소를 묶어 세요.`,
-  sol:R`<div class="step">\(S=\{3,6,\dots,48\}\) 16개. 7로 나눈 나머지: 나머지 1 → 15, 36 (2개), 나머지 2 → 9, 30 (2개), 나머지 3 → 3, 24, 45 (3개), 나머지 4 → 18, 39 (2개).</div><div class="step">\(X\)는 나머지 1~4 그룹에서 각각 적어도 하나, 다른 나머지는 넣으면 안 돼요.</div><div class="step">\((2^2-1)(2^2-1)(2^3-1)(2^2-1)=3\times3\times7\times3=189\).</div>`,
-  v:{ q:R`\(S=\{2,4,\dots,20\}\)의 부분집합 \(X\)에서 \(f(n)=(n\)을 3으로 나눈 나머지\()\)의 치역이 \(\{1,2\}\)가 되는 \(X\)의 개수를 구하시오.`, input:'105', hint:R`나머지 1: 3개, 나머지 2: 4개.`, sol:R`<div class="step">\(7\times15=105\).</div>` } },
-{ u:'func', id:'G520', tag:'곱을 덧셈으로 바꾸는 함수', c:'c1', t:80, src:GJ('520',143), q:R`2 이상의 자연수에서 정의된 함수 \(f(x)\)가 (가) \(p\)가 소수일 때 \(f(p)=p\), (나) 2 이상의 두 자연수 \(m, n\)에 대하여 \(f(mn)=f(m)+f(n)-1\)을 만족시킬 때, \(f(240)\)의 값은?`, ch:['10','11','12','13','14'], a:1, hint:R`\(240=2^4\times3\times5\). 쪼갤 때마다 1씩 빠져요.`,
-  sol:R`<div class="step">\(240=2\times2\times2\times2\times3\times5\) (소수 6개).</div><div class="step">6개로 쪼개려면 (나)를 5번 써서 1을 5번 빼요: \(2+2+2+2+3+5-5=11\).</div>`,
-  v:{ q:R`\(f(p)=p\), \(f(mn)=f(m)+f(n)-2\)일 때 \(f(72)\)는?`, ch:['2','4','6','8','10'], a:1, hint:R`소수 5개, 4번 쪼갬.`, sol:R`<div class="step">\(12-8=4\).</div>` } },
-{ u:'func', id:'G521', tag:'주기함수와 직선의 교점', c:'c1', t:180, input:'7', src:GJ('521',143), q:R`함수 \(f(x)\)가 (가) \(f(x)=-|x|+1\ (-2\le x\le2)\), (나) 모든 실수 \(x\)에 대하여 \(f(x+4)=f(x)\)를 만족시킨다. 방정식 \(f(x)=\dfrac1nx\)의 서로 다른 실근의 개수가 7이 되도록 하는 자연수 \(n\)의 값을 구하시오.`, hint:R`지그재그(높이 −1~1)와 원점을 지나는 직선. 직선이 높이 ±1을 넘는 지점이 \(x=\pm n\).`,
-  sol:R`<div class="step">\(f\)는 꼭대기 1(\(x=0,\pm4,\dots\)), 바닥 \(-1\)(\(x=\pm2,\pm6,\dots\))인 지그재그. 직선 \(y=\dfrac xn\)은 \(|x|\le n\)에서만 \(-1\sim1\) 사이에 있어요.</div>`+PLOT({x0:-9,x1:9,y0:-1.6,y1:1.6,w:230,h:80,pw:260},[{pts:[[-9,-0.25],[-8,1],[-6,-1],[-4,1],[-2,-1],[0,1],[2,-1],[4,1],[6,-1],[8,1],[9,0.75]]},{fn:x=>x/7,a:-9,b:9,cls:'c3'},{t:[7,1,'y=x/7'],fs:9,dy:-4}])+R`<div class="step">\(n=7\)일 때 세어 보면 오른쪽 3개, 왼쪽 4개 → 7개. (왼쪽은 \(x=-7\) 근처 꼭대기에서 한 번 더 만나요.)</div><div class="step">\(n\)이 작으면 교점이 줄고, 크면 늘어나서 7개가 되는 건 \(n=7\).</div>`,
-  v:{ q:R`같은 \(f\)에서 \(f(x)=\dfrac1nx\)의 실근이 5개인 자연수 \(n\)을 구하시오.`, input:'5', hint:R`직선을 \(n=5\)로 그려 세어 보세요.`, sol:R`<div class="step">오른쪽 3, 왼쪽 2 → 5.</div>` } },
-{ u:'func', id:'G533', tag:'일대일대응이 될 조건', c:'c3', t:80, input:'1', src:GJ('533',146), q:R`두 집합 \(X=\{x\mid x\ge k\}\), \(Y=\{y\mid y\ge3\}\)에 대하여 함수 \(f: X\to Y\)가 \(f(x)=x^2-2x+4\)일 때, 함수 \(f\)가 일대일대응이 되도록 하는 실수 \(k\)의 값을 구하시오.`, hint:R`일대일: 꼭짓점 오른쪽. 공역=치역: 최솟값이 3.`,
-  sol:R`<div class="step">\(f=(x-1)^2+3\). 일대일이려면 \(k\ge1\).</div><div class="step">치역 \(=\{y\mid y\ge f(k)\}\)이 \(Y\)와 같아야 하니 \(f(k)=3\) → \(k=1\).</div>`,
-  v:{ q:R`\(X=\{x\mid x\ge k\}\), \(Y=\{y\mid y\ge3\}\)에서 \(f(x)=x^2-4x+7\)이 일대일대응인 \(k\)를 구하시오.`, input:'2', hint:R`\((x-2)^2+3\).`, sol:R`<div class="step">\(k=2\).</div>` } },
-{ u:'func', id:'G534a', tag:'일대일대응 (위로 볼록)', c:'c3', t:90, input:'1', src:GJ('534 (1)',146), q:R`두 집합 \(X=\{x\mid x\le k\}\), \(Y=\{y\mid y\le2\}\)에 대하여 \(X\)에서 \(Y\)로의 함수 \(f(x)=-x^2+4x-1\)이 일대일대응이 되도록 하는 실수 \(k\)의 값을 구하시오.`, hint:R`꼭짓점 \(x=2\) 왼쪽에서 증가.`,
-  sol:R`<div class="step">\(f=-(x-2)^2+3\), \(x\le2\)에서 증가. 일대일이려면 \(k\le2\).</div><div class="step">치역 \(y\le f(k)\)가 \(y\le2\)와 같아야: \(-(k-2)^2+3=2\) → \(k=1\) 또는 3 → \(k=1\).</div>`,
-  v:{ q:R`\(X=\{x\mid x\le k\}\), \(Y=\{y\mid y\le3\}\)에서 \(f(x)=-x^2+2x+3\)이 일대일대응인 \(k\)를 구하시오.`, input:'0', hint:R`꼭짓점 \((1,4)\).`, sol:R`<div class="step">\(-(k-1)^2+4=3\), \(k\le1\) → 0.</div>` } },
-{ u:'func', id:'G534b', tag:'X에서 X로의 일대일대응', c:'c3', t:90, input:'2', src:GJ('534 (2)',146), q:R`집합 \(X=\{x\mid x\ge k\}\)에서 \(X\)로의 함수 \(f(x)=x^2+2x-6\)이 일대일대응이 되도록 하는 실수 \(k\)의 값을 구하시오.`, hint:R`\(f(k)=k\)여야 치역이 \(X\)와 같아요.`,
-  sol:R`<div class="step">\(f=(x+1)^2-7\), 일대일이려면 \(k\ge-1\).</div><div class="step">치역 \(y\ge f(k)\)가 \(X\)와 같아야: \(k^2+2k-6=k\) → \(k=2\) 또는 \(-3\) → \(k=2\).</div>`,
-  v:{ q:R`\(X=\{x\mid x\ge k\}\)에서 \(X\)로의 \(f(x)=x^2-2x-4\)가 일대일대응인 \(k\)를 구하시오.`, input:'4', hint:R`\(k^2-3k-4=0\).`, sol:R`<div class="step">\(k=4\).</div>` } },
-{ u:'inv', id:'G535', tag:'합성함수의 최대·최소', c:'c1', t:90, src:GJ('535',146), q:R`두 함수 \(f(x)=|x-1|-1\), \(g(x)=-2x^2+4x+15\)에 대하여 \(-2\le x\le4\)에서 함수 \((g\circ f)(x)\)의 최댓값과 최솟값의 합은?`, ch:['25','26','27','28','29'], a:1, hint:R`\(t=f(x)\)의 범위부터.`,
-  sol:R`<div class="step">\(-2\le x\le4\)에서 \(t=f(x)\)는 \(-1\)(\(x=1\))부터 2(\(x=-2, 4\))까지: \(-1\le t\le2\).</div><div class="step">\(g(t)=-2(t-1)^2+17\): 최대 17(\(t=1\)), 최소 \(g(-1)=9\). 합 26.</div>`,
-  v:{ q:R`\(f(x)=|x|-2\), \(g(x)=-x^2+2x+8\)일 때 \(-3\le x\le3\)에서 \((g\circ f)(x)\)의 최댓값과 최솟값의 합은?`, ch:['7','8','9','10','11'], a:2, hint:R`\(t\in[-2,1]\).`, sol:R`<div class="step">최대 \(g(1)=9\), 최소 \(g(-2)=0\) → 9.</div>` } },
-{ u:'inv', id:'G536', tag:'합성이 정의될 조건', c:'c1', t:100, src:GJ('536',146), q:R`집합 \(X=\{0,1\}\)에서 정의된 두 함수 \(f(x)=3x+8\), \(g(x)=ax^2-bx-2a+b\)에 대하여 합성함수 \((f\circ g)(x)\)가 정의될 때, 모든 \(a+b\)의 값의 합은? (단, \(a, b\)는 실수이다.)`, ch:['−4','−2','0','2','4'], a:0, hint:R`\(g\)의 값이 \(f\)의 정의역 \(\{0,1\}\) 안에 있어야.`,
-  sol:R`<div class="step">\(g(0)=-2a+b\), \(g(1)=-a\). 둘 다 \(\{0,1\}\) 안.</div><div class="step">\(-a\in\{0,1\}\) → \(a=0\) 또는 \(-1\).</div><div class="step">\(a=0\): \(b\in\{0,1\}\) → \(a+b=0, 1\). \(a=-1\): \(2+b\in\{0,1\}\) → \(b=-2,-1\) → \(a+b=-3,-2\).</div><div class="step">합 \(0+1-3-2=-4\).</div>`,
-  v:{ q:R`\(X=\{0,1\}\)에서 \(f(x)=2x+1\), \(g(x)=ax+b\)일 때 \(f\circ g\)가 정의되는 모든 \(a+b\)의 값의 합은?`, ch:['0','1','2','3','4'], a:2, hint:R`\(g(0), g(1)\in\{0,1\}\).`, sol:R`<div class="step">\((a,b)=(0,0),(1,0),(-1,1),(0,1)\) → 0+1+0+1=2.</div>` } },
-{ u:'inv', id:'G537', tag:'일의 자리 함수의 합성', c:'c1', t:90, input:'12', src:GJ('537',146), q:R`자연수 전체의 집합 \(N\)에서 \(N\)으로의 세 함수 \(f(n)=(7^n\)의 일의 자리의 수\()\), \(g(n)=(9^n\)의 일의 자리의 수\()\), \(h(n)=(n^6\)을 5로 나눈 나머지\()+1\)에 대하여 \((f\circ g)(25)+(h\circ f)(75)\)의 값을 구하시오.`, hint:R`7의 거듭제곱 일의 자리: 7, 9, 3, 1 반복. 9는 9, 1 반복.`,
-  sol:R`<div class="step">\(g(25)=9\) (홀수 제곱) → \(f(9)\): \(9=4\times2+1\) → 7.</div><div class="step">\(f(75)\): \(75=4\times18+3\) → 3. \(h(3)\): \(3^6=729\), 5로 나눈 나머지 4 → \(4+1=5\).</div><div class="step">\(7+5=12\).</div>`,
-  v:{ q:R`\(f(n)=(3^n\)의 일의 자리\()\), \(g(n)=(n^2\)의 일의 자리\()\)일 때 \((f\circ g)(13)+(g\circ f)(7)\)을 구하시오.`, input:'12', hint:R`\(g(13)=9\), \(f(7)=7\).`, sol:R`<div class="step">\(f(9)=3\), \(g(7)=9\) → 12.</div>` } },
-{ u:'inv', id:'G549', tag:'f(f(a))=f(a) (교육청)', c:'c1', t:120, input:'6', src:GJ('549',149,'STEP 2 심화 유형 · 교육청 기출'), q:R`실수 전체의 집합에서 정의된 함수 \(f(x)=\begin{cases}2x+2&(x<2)\\x^2-7x+16&(x\ge2)\end{cases}\)에 대하여 \((f\circ f)(a)=f(a)\)를 만족시키는 모든 실수 \(a\)의 값의 합을 구하시오.`, hint:R`\(t=f(a)\)로 놓으면 \(f(t)=t\). 먼저 \(t\)를 구해요.`,
-  sol:R`<div class="step">\(f(t)=t\): \(2t+2=t\) → \(t=-2\) ✔(\(<2\)). \(t^2-7t+16=t\) → \(t=4\) ✔.</div><div class="step">\(f(a)=-2\): \(2a+2=-2\) → \(a=-2\). (아래 식은 실근 없음)</div><div class="step">\(f(a)=4\): \(2a+2=4\) → \(a=1\). \(a^2-7a+12=0\) → \(a=3, 4\).</div><div class="step">합 \(-2+1+3+4=6\).</div>`,
-  v:{ q:R`\(f(x)=\begin{cases}x+3&(x<1)\\x^2-3x+4&(x\ge1)\end{cases}\)에서 \((f\circ f)(a)=f(a)\)인 모든 \(a\)의 합을 구하시오.`, input:'2', hint:R`\(f(t)=t\) → \(t=2\).`, sol:R`<div class="step">\(f(a)=2\): \(a=-1, 1, 2\) → 2.</div>` } },
-{ u:'inv', id:'G550', tag:'그래프로 합성 방정식', c:'c1', t:150, src:GJ('550',149)+' (그림은 앱에서 다시 그림)', q:R`그림과 같이 꼭짓점의 좌표가 \((-2,6)\)인 이차함수 \(y=f(x)\)의 그래프와 직선 \(y=g(x)\)가 점 \((3,0)\)에서 만나고, 직선 \(y=g(x)\)의 \(y\)절편이 1일 때, 보기에서 옳은 것만을 있는 대로 고른 것은?`+PLOT({x0:-8,x1:5,y0:-2,y1:7,w:200,h:130,pw:230},[{fn:x=>-6/25*(x+2)**2+6,a:-7.5,b:4},{fn:x=>-x/3+1,a:-8,b:5,cls:'c3'},{dot:[-2,6]},{dash:[[-2,0],[-2,6],[0,6]]},{t:[0,6,'6'],dx:-10,dy:4},{t:[-2,0,'−2'],dx:-6,dy:12},{t:[3,0,'3'],dy:12},{t:[0,1,'1'],dx:4,dy:-3},{t:[-7,3.6,'g'],fs:10},{t:[2.5,4,'f'],fs:10}])+R`<div class="key">ㄱ. 방정식 \((f\circ g)(x)=0\)의 서로 다른 실근의 개수는 2이다.<br>ㄴ. 방정식 \(\{f(x)\}^2=\{g(x)\}^2\)의 서로 다른 실근의 개수는 4이다.<br>ㄷ. 방정식 \((f\circ f)(x)=0\)의 모든 실근의 합은 \(-8\)이다.</div>`, ch:['ㄱ','ㄴ','ㄱ, ㄷ','ㄴ, ㄷ','ㄱ, ㄴ, ㄷ'], a:2, hint:R`\(f\)의 근: 대칭축 \(-2\)에서 5만큼 → 3, \(-7\).`,
-  sol:R`<div class="step">\(f(x)=0\)의 근은 3과 \(-7\) (축 \(x=-2\)에 대칭). \(g(x)=-\dfrac x3+1\).</div><div class="step">ㄱ: \(g(x)=3\) 또는 \(-7\) → 직선이라 각각 1개 → 2개 ✔.</div><div class="step">ㄴ: \(f=g\) 또는 \(f=-g\). 두 경우 모두 \(x=3\)을 지나서 겹쳐요. \(f=g\)에서 하나 더, \(f=-g\)에서 하나 더 → 3개 ✘.</div><div class="step">ㄷ: \(f(x)=3\)의 두 근 합 \(-4\), \(f(x)=-7\)의 두 근 합 \(-4\) (축 대칭) → \(-8\) ✔.</div>`,
-  v:{ q:R`같은 그림에서 방정식 \((f\circ g)(x)=0\)의 모든 실근의 합을 구하시오.`, input:'18', hint:R`\(g(x)=3\), \(g(x)=-7\).`, sol:R`<div class="step">\(x=-6, 24\) → 18.</div>` } },
-/* --- 유리·무리 --- */
-{ u:'rat', id:'G647', tag:'두 직선의 비로 만든 유리함수', c:'c2', t:100, src:GJ('647',174)+' (그림은 앱에서 다시 그림)', q:R`두 일차함수 \(y=f(x)\), \(y=g(x)\)의 그래프가 아래와 같다. (\(f\)는 \((-3,0)\), \(g\)는 \((3,0)\)을 지나고 둘은 \((1,2)\)에서 만남) 함수 \(y=\dfrac{g(x)}{f(x)}\)의 그래프의 개형으로 옳은 것은?`+LIN647, ch:[HYP(3,1,2,'(3, 1)'),HYP(-3,1,-2,'(−3, 1)'),HYP(3,-2,2,'(3, −2)'),HYP(-3,-2,2.5,'(−3, −2)'),HYP(3,0.5,-2,'(3, ½)')], a:3, hint:R`두 직선 식을 구해 나눠 보세요.`,
-  sol:R`<div class="step">\(g(x)=-x+3\), \(f(x)=\dfrac12(x+3)\).</div><div class="step">\(\dfrac{g}{f}=\dfrac{2(-x+3)}{x+3}=-2+\dfrac{12}{x+3}\).</div><div class="step">점근선 \(x=-3,\ y=-2\), \(k=12>0\) (오른쪽 위·왼쪽 아래) → ④.</div>`,
-  v:{ q:R`같은 그림에서 \(y=\dfrac{f(x)}{g(x)}\)의 점근선이 \(x=p,\ y=q\)일 때 \(p+q\)는?`+LIN647, ch:['1',R`\(\dfrac32\)`,'2',R`\(\dfrac52\)`,'3'], a:3, hint:R`\(\dfrac{x+3}{2(3-x)}\).`, sol:R`<div class="step">\(x=3,\ y=-\dfrac12\) → \(\dfrac52\).</div>` } },
-{ u:'rat', id:'G648', tag:'합성의 규칙 찾기', c:'c1', t:80, input:'1/1001', src:GJ('648',174), q:R`함수 \(f(x)=\dfrac{x}{x+1}\)에 대하여 \(f_1(x)=f(x)\), \(f_{n+1}(x)=(f\circ f_n)(x)\)라 정의할 때, \(f_{1000}(1)\)의 값을 구하시오. <span class="small">분수는 1/1001처럼 입력</span>`, hint:R`\(f_2, f_3\)을 직접 구해 규칙을.`,
-  sol:R`<div class="step">\(f_2(x)=\dfrac{\frac x{x+1}}{\frac x{x+1}+1}=\dfrac{x}{2x+1}\), \(f_3(x)=\dfrac{x}{3x+1}\), …</div><div class="step">\(f_n(x)=\dfrac{x}{nx+1}\) → \(f_{1000}(1)=\dfrac1{1001}\).</div>`,
-  v:{ q:R`\(f(x)=\dfrac{x}{2x+1}\)일 때 같은 방식으로 \(f_{10}(1)\)을 구하시오.`, input:'1/21', hint:R`\(f_n=\dfrac{x}{2nx+1}\).`, sol:R`<div class="step">\(\dfrac1{21}\).</div>` } },
-{ u:'rat', id:'G649', tag:'세 번 합성하면 항등함수', c:'c1', t:120, input:'6', src:GJ('649',174), q:R`\(x\ne0,\ x\ne2\)인 모든 실수 \(x\)에서 정의된 함수 \(f(x)=-\dfrac4x+2\)에 대하여 함수 \(f^{500}(x)\)의 역함수를 \(g(x)\)라 할 때, \(g(-1)\)의 값을 구하시오. (단, \(f^1=f\), \(f^{n+1}=f^n\circ f\))`, hint:R`\(f^2, f^3\)을 구해 보면 \(f^3=x\).`,
-  sol:R`<div class="step">\(f^2(x)=-\dfrac{4}{x-2}\), \(f^3(x)=x\). 3번마다 제자리.</div><div class="step">\(500=3\times166+2\) → \(f^{500}=f^2\). 그 역함수는 \(f\) (\(f^2\circ f=I\)).</div><div class="step">\(g(-1)=f(-1)=4+2=6\).</div>`,
-  v:{ q:R`\(f(x)=1-\dfrac1x\)에서 \(f^{100}\)의 역함수를 \(g\)라 할 때 \(g(2)\)를 구하시오.`, input:'-1', hint:R`\(f^3=x\), \(f^{100}=f\), 역함수 \(f^2\).`, sol:R`<div class="step">\(f^2(x)=-\dfrac1{x-1}\) → \(g(2)=-1\).</div>` } },
-{ u:'rat', id:'G650', tag:'그래프로 계수 부호 판단', c:'c2', t:120, src:GJ('650',174)+' (그림은 앱에서 다시 그림)', q:R`유리함수 \(y=\dfrac{ax+b}{cx+d}\ (ad-bc\ne0)\)의 그래프가 아래와 같다. (점근선 교점은 제1사분면, 왼쪽 위·오른쪽 아래 가지, \(y\)절편 양수, \(x\)절편 양수) 보기에서 옳은 것의 개수는?`+G650(x=>1-2/(x-2),2,1)+R`<div class="key">ㄱ. \(ac<0\) &nbsp; ㄴ. \(bd>0\) &nbsp; ㄷ. \((a-b)(c-d)>0\) &nbsp; ㄹ. \(ad-bc>0\)</div>`, ch:['0','1','2','3','4'], a:3, hint:R`점근선 \(x=-\frac dc>0\), \(y=\frac ac>0\), \(y\)절편 \(\frac bd>0\), \(x\)절편 \(-\frac ba>0\).`,
-  sol:R`<div class="step">\(\frac ac>0\) → \(ac>0\): ㄱ ✘. \(\frac bd>0\): ㄴ ✔.</div><div class="step">\(c>0\)이라 하면 \(a>0\), \(d<0\), \(b<0\) (\(x\)절편 양수). \(a-b>0\), \(c-d>0\) → ㄷ ✔.</div><div class="step">가지가 왼쪽 위·오른쪽 아래 → \(k<0\) ⟺ \(ad-bc>0\): ㄹ ✔. 3개.</div>`,
-  v:{ q:R`아래 그래프 \(y=\dfrac{ax+b}{cx+d}\)에서 보기 중 옳은 것의 개수는?`+G650(x=>1+2/(x-1),1,1)+R`<div class="key">ㄱ. \(ac<0\) ㄴ. \(bd>0\) ㄷ. \((a-b)(c-d)>0\) ㄹ. \(ad-bc>0\)</div>`, ch:['0','1','2','3','4'], a:0, hint:R`예: \(\dfrac{x+1}{x-1}\).`, sol:R`<div class="step">\(a=b=c=1, d=-1\): 전부 거짓 → 0.</div>` } },
-{ u:'rat', id:'G661', tag:'삼각형 넓이의 최솟값', c:'c3', t:150, input:'6', src:GJ('661',177), q:R`함수 \(y=\dfrac{2x-3}{x+1}\)의 그래프의 두 점근선의 교점을 A라 하고, 직선 \(y=mx-2m+1\ (m>0)\)과 두 점근선의 교점을 각각 B, C라 할 때, 삼각형 ABC의 넓이의 최솟값을 구하시오.`, hint:R`직선은 늘 \((2,1)\)을 지나요. 직각삼각형 두 변을 \(m\)으로.`,
-  sol:R`<div class="step">A\((-1,2)\). 직선 \(y=m(x-2)+1\).</div><div class="step">B (\(x=-1\)): \(y=1-3m\) → \(\overline{AB}=3m+1\). C (\(y=2\)): \(x=2+\dfrac1m\) → \(\overline{AC}=3+\dfrac1m\).</div><div class="step">넓이 \(=\dfrac12(3m+1)\left(3+\dfrac1m\right)=\dfrac12\left(9m+\dfrac1m+6\right)\ge\dfrac12(6+6)=6\) (\(m=\frac13\)).</div>`,
-  v:{ q:R`\(y=\dfrac{x}{x-1}\)의 점근선 교점 A, 직선 \(y=m(x-3)-1\ (m>0)\)과 두 점근선의 교점 B, C에 대하여 삼각형 ABC 넓이의 최솟값을 구하시오.`, input:'8', hint:R`A\((1,1)\).`, sol:R`<div class="step">\(\frac12(2+2m)(2+\frac2m)=2(2+m+\frac1m)\ge8\).</div>` } },
-{ u:'rat', id:'G662', tag:'자기 역함수 + 넓이', c:'c4', t:120, input:'8', src:GJ('662',177), q:R`유리함수 \(f(x)=\dfrac{-2x+a}{x+b}\ (a>0)\)가 \(x\ne-b\)인 모든 실수 \(x\)에 대하여 \((f\circ f)(x)=x\)를 만족시킨다. 함수 \(y=f(x)\)의 그래프 위의 점 A에서 두 점근선에 내린 수선의 발을 각각 B, C라 할 때, 삼각형 ABC의 넓이가 5이다. 상수 \(a, b\)에 대하여 \(a+b\)의 값을 구하시오.`, hint:R`\(f=f^{-1}\)이면 \(b=2\). 삼각형 넓이 \(=\frac12|k|\).`,
-  sol:R`<div class="step">\(f=f^{-1}\) → 공식에서 \(-2=-b\) → \(b=2\).</div><div class="step">\(f=-2+\dfrac{a+4}{x+2}\). 수선 두 개로 만든 직사각형 넓이는 늘 \(|k|\), 삼각형은 절반: \(\dfrac{a+4}2=5\) → \(a=6\).</div><div class="step">\(a+b=8\).</div>`,
-  v:{ q:R`\(f(x)=\dfrac{-3x+a}{x+b}\ (a>0)\)가 \(f\circ f=I\)이고, 같은 삼각형 넓이가 6일 때 \(a+b\)를 구하시오.`, input:'6', hint:R`\(b=3\), \(k=a+9\).`, sol:R`<div class="step">\(\frac{a+9}2=6\) → \(a=3\). 6.</div>` } },
-{ u:'rat', id:'G663', tag:'역함수와 평행이동 조건', c:'c4', t:120, src:GJ('663',177), q:R`유리함수 \(f(x)=\dfrac{3x+b}{x+a}\)가 (가) 1, 3이 아닌 모든 실수 \(x\)에 대하여 \(f^{-1}(x)=f(x-2)-2\), (나) 함수 \(y=f(x)\)의 그래프를 평행이동하면 \(y=\dfrac2x\)의 그래프와 일치한다를 만족시킨다. \(a+b\)의 값은?`, ch:['−2','−1','0','1','2'], a:0, hint:R`점근선 교점으로 비교: \(f\)는 \((-a,3)\), \(f^{-1}\)는 \((3,-a)\).`,
-  sol:R`<div class="step">\(f(x-2)-2\)의 점근선 교점 \((-a+2, 1)\)이 \(f^{-1}\)의 \((3,-a)\)와 같아야 → \(a=-1\).</div><div class="step">(나): \(f=3+\dfrac{b-3a}{x+a}\)에서 \(b-3a=2\) → \(b=-1\).</div><div class="step">\(a+b=-2\).</div>`,
-  v:{ q:R`\(f(x)=\dfrac{2x+b}{x+a}\)가 \(f^{-1}(x)=f(x-1)-1\), 평행이동하면 \(y=\dfrac3x\)와 일치할 때 \(a+b\)는?`, ch:['−2','−1','0','1','2'], a:2, hint:R`\((-a+1,1)=(2,-a)\).`, sol:R`<div class="step">\(a=-1\), \(b-2a=3\) → \(b=1\). 0.</div>` } },
-{ u:'rat', id:'G664', tag:'유리함수 성질 판단', c:'c2', t:100, src:GJ('664',177), q:R`유리함수 \(f(x)=\dfrac{a}{x+b}+c\)에 대하여 보기에서 옳은 것만을 있는 대로 고른 것은? (단, \(a, b, c\)는 실수이고 \(a\ne0\))<div class="key">ㄱ. \(f(4)=f^{-1}(4)\)이면 \(b+c=0\)이다.<br>ㄴ. 그래프가 직선 \(y=x\)에 대하여 대칭이고 \(f(0)=0\)이면 \(a=c^2\)이다.<br>ㄷ. \(a>0\)이면 \(-b\)가 아닌 임의의 두 실수 \(x_1<x_2\)에 대하여 \(f(x_1)>f(x_2)\)이다.</div>`, ch:['ㄱ','ㄴ','ㄱ, ㄴ','ㄴ, ㄷ','ㄱ, ㄴ, ㄷ'], a:1, hint:R`ㄷ은 점근선 양쪽에서 비교해 보세요.`,
-  sol:R`<div class="step">ㄱ: 한 점만으로는 대칭 여부가 정해지지 않아요. 반례 존재 ✘.</div><div class="step">ㄴ: \(y=x\) 대칭이면 중심 \((-b,c)\)가 \(y=x\) 위 → \(c=-b\). \(f(0)=\frac ab+c=0\) → \(a=-bc=c^2\) ✔.</div><div class="step">ㄷ: 가지 하나 안에서는 감소지만, 왼쪽 가지 점이 오른쪽 가지 점보다 작을 수 있어요 ✘.</div>`,
-  v:{ q:R`\(f(x)=\dfrac a{x+b}+c\)에 대하여 옳은 것은?<div class="key">ㄱ. 그래프가 점 \((1,2)\)에 대해 대칭이면 \(b+c=1\) ㄴ. \(a>0\)이면 \(x>-b\)에서 감소 ㄷ. 치역은 \(\{y\mid y\ne b\}\)</div>`, ch:['ㄱ','ㄴ','ㄱ, ㄴ','ㄴ, ㄷ','ㄱ, ㄴ, ㄷ'], a:2, hint:R`치역은 \(y\ne c\).`, sol:R`<div class="step">ㄱ: \(b=-1, c=2\) ✔. ㄴ ✔. ㄷ ✘.</div>` } },
-{ u:'rat', id:'G665', tag:'자기 역함수 성질 종합', c:'c4', t:120, src:GJ('665',177), q:R`함수 \(f(x)=\dfrac{4x}{x-4}\)의 그래프에 대한 설명 중 보기에서 옳은 것만을 있는 대로 고른 것은?<div class="key">ㄱ. \(x\ne4\)인 모든 실수 \(x\)에 대하여 \((f\circ f)(x)=x\)이다.<br>ㄴ. \(m<0\)일 때, 직선 \(mx-y+4-4m=0\)과 만나지 않는다.<br>ㄷ. \(a<4<b\)일 때, 두 점 \(\mathrm A(a, f(a))\), \(\mathrm B(b, f(b))\)에 대하여 선분 AB의 길이의 최솟값은 \(8\sqrt2\)이다.</div>`, ch:['ㄱ','ㄴ','ㄱ, ㄴ','ㄴ, ㄷ','ㄱ, ㄴ, ㄷ'], a:4, hint:R`\(f=4+\dfrac{16}{x-4}\), 중심 \((4,4)\).`,
-  sol:R`<div class="step">ㄱ: 공식으로 역함수가 자기 자신 (\(a=4,\ d=-4\)) ✔.</div><div class="step">ㄴ: 직선은 \(y-4=m(x-4)\), 중심을 지나는 기울기 음수 직선. \(k>0\)인 그래프의 가지는 1·3 방향이라 안 만나요 ✔.</div><div class="step">ㄷ: 서로 다른 가지의 두 점이 가장 가까울 때는 \(y=x\) 위의 두 꼭짓점: \(4\pm4\) → \((0,0), (8,8)\), 거리 \(8\sqrt2\) ✔.</div>`,
-  v:{ q:R`\(f(x)=\dfrac{2x}{x-2}\)에 대하여 옳은 것은?<div class="key">ㄱ. \(f\circ f=I\) ㄴ. \(m<0\)이면 직선 \(y-2=m(x-2)\)와 만나지 않는다 ㄷ. 서로 다른 가지 두 점 사이 거리의 최솟값은 \(4\sqrt2\)</div>`, ch:['ㄱ','ㄴ','ㄱ, ㄴ','ㄴ, ㄷ','ㄱ, ㄴ, ㄷ'], a:4, hint:R`\(2+\dfrac4{x-2}\).`, sol:R`<div class="step">꼭짓점 \((0,0), (4,4)\) → \(4\sqrt2\). 모두 ✔.</div>` } },
-{ u:'irr', id:'G675', tag:'무리함수와 망원 합', c:'c1', t:180, src:GJ('675',180)+' (그림은 앱에서 다시 그림)', q:R`자연수 \(n\)에 대하여 직선 \(x=n\)이 \(x\)축, 두 곡선 \(y=\sqrt{2x-1}\), \(y=\sqrt{2x+1}\)과 만나는 점을 각각 \(\mathrm A_n, \mathrm B_n, \mathrm C_n\)이라 하자. \(l_n=\overline{\mathrm A_n\mathrm C_{n+1}}-\overline{\mathrm A_n\mathrm B_{n+1}}\)이라 할 때, \(l_1+l_2+\cdots+l_m>2\sqrt2\)를 만족시키는 자연수 \(m\)의 최솟값은?`+PLOT({x0:-0.5,x1:4,y0:-0.3,y1:3.3,w:170,h:120,pw:210},[{fn:x=>Math.sqrt(2*x+1),a:-0.5,b:4},{fn:x=>Math.sqrt(2*x-1),a:0.5,b:4,cls:'c3'},{pts:[[2,0],[3,Math.sqrt(7)]],cls:'c2'},{pts:[[2,0],[3,Math.sqrt(5)]],cls:'c2'},{dash:[[2,0],[2,Math.sqrt(5)]]},{dash:[[3,0],[3,Math.sqrt(7)]]},{t:[2,0,'Aₙ'],dy:12,fs:9},{t:[3,0,'Aₙ₊₁'],dy:12,fs:9}]), ch:['7','8','9','10','11'], a:3, hint:R`피타고라스로 길이를 구하면 망원 합이 돼요.`,
-  sol:R`<div class="step">\(\overline{\mathrm A_n\mathrm C_{n+1}}=\sqrt{1+(2n+3)}=\sqrt{2n+4}\), \(\overline{\mathrm A_n\mathrm B_{n+1}}=\sqrt{1+(2n+1)}=\sqrt{2n+2}\).</div><div class="step">\(l_n=\sqrt{2n+4}-\sqrt{2n+2}\). 더하면 가운데가 지워져 \(\sqrt{2m+4}-2\).</div><div class="step">\(\sqrt{2m+4}>2+2\sqrt2\) → \(2m+4>12+8\sqrt2\approx23.3\) → \(m>9.6\) → 10.</div>`,
-  v:{ q:R`같은 방식으로 두 곡선이 \(y=\sqrt{2x}\), \(y=\sqrt{2x+2}\)일 때 \(l_1+\cdots+l_m>\sqrt5\)인 \(m\)의 최솟값은?`, ch:['6','7','8','9','10'], a:2, hint:R`\(l_n=\sqrt{2n+5}-\sqrt{2n+3}\).`, sol:R`<div class="step">합 \(\sqrt{2m+5}-\sqrt5>\sqrt5\) → \(2m+5>20\) → 8.</div>` } },
-{ u:'irr', id:'G677', tag:'무리함수 성질 판단', c:'c2', t:90, src:GJ('677',180), q:R`\(k\)가 0이 아닌 실수일 때, 무리함수 \(y=4-\sqrt{kx+1}\)에 대한 설명 중 보기에서 옳은 것만을 있는 대로 고른 것은?<div class="key">ㄱ. 치역은 \(\{y\mid y\le4\}\)이다.<br>ㄴ. \(k>0\)일 때, 정의역은 \(\left\{x\,\middle|\,x\le-\dfrac1k\right\}\)이다.<br>ㄷ. \(k<0\)일 때, 그래프는 제4사분면을 지나지 않는다.</div>`, ch:['ㄴ','ㄱ, ㄴ','ㄱ, ㄷ','ㄴ, ㄷ','ㄱ, ㄴ, ㄷ'], a:2, hint:R`\(k<0\)이면 시작점 \(\left(-\frac1k,4\right)\)는 1사분면, 왼쪽 아래로.`,
-  sol:R`<div class="step">ㄱ ✔. ㄴ: \(kx+1\ge0\) → \(x\ge-\dfrac1k\) ✘.</div><div class="step">ㄷ: 시작점 \(x=-\frac1k>0\)에서 왼쪽으로 가요. \(0<x<-\frac1k\) 구간에서 \(y\)는 3~4라 양수 → 4사분면 안 지남 ✔.</div>`,
-  v:{ q:R`\(y=2+\sqrt{kx-1}\ (k\ne0)\)에 대하여 옳은 것은?<div class="key">ㄱ. 치역 \(y\ge2\) ㄴ. \(k>0\)이면 정의역 \(x\ge\dfrac1k\) ㄷ. \(k<0\)이면 제1사분면을 지나지 않는다</div>`, ch:['ㄴ','ㄱ, ㄴ','ㄱ, ㄷ','ㄴ, ㄷ','ㄱ, ㄴ, ㄷ'], a:4, hint:R`\(k<0\)이면 시작점 \(x<0\).`, sol:R`<div class="step">모두 ✔.</div>` } },
-{ u:'irr', id:'G678', tag:'곡선 위 정사각형', c:'c2', t:120, src:GJ('678',180)+' (그림은 앱에서 다시 그림)', q:R`그림과 같이 점 \(\mathrm A(a,0)\ (a>0)\)을 지나고 \(x\)축과 수직인 직선이 곡선 \(y=3\sqrt x\)와 만나는 점을 B라 하자. 선분 AB를 한 변으로 하는 정사각형 ABCD의 한 꼭짓점 C가 곡선 \(y=\sqrt{2x}\) 위에 있을 때, \(a\)의 값은?`+PLOT({x0:-0.2,x1:3.6,y0:-0.3,y1:4.5,w:170,h:140,pw:200},[{fn:x=>3*Math.sqrt(x),a:0,b:2.1},{fn:x=>Math.sqrt(2*x),a:0,b:3.6,cls:'c3'},{pts:[[36/49,0],[36/49,18/7],[36/49+18/7,18/7],[36/49+18/7,0]],cls:'c2'},{t:[36/49,0,'A'],dy:12,fs:9},{t:[36/49,18/7,'B'],dx:-10,dy:-3,fs:9},{t:[36/49+18/7,18/7,'C'],dx:3,dy:-4,fs:9},{t:[36/49+18/7,0,'D'],dy:12,fs:9}]), ch:[R`\(\dfrac{16}{25}\)`,R`\(\dfrac{25}{36}\)`,R`\(\dfrac{36}{49}\)`,R`\(\dfrac{49}{64}\)`,R`\(\dfrac{64}{81}\)`], a:2, hint:R`C\((a+3\sqrt a,\ 3\sqrt a)\).`,
-  sol:R`<div class="step">\(\overline{AB}=3\sqrt a\)라 C\(=(a+3\sqrt a,\ 3\sqrt a)\).</div><div class="step">C가 \(y=\sqrt{2x}\) 위: \(9a=2(a+3\sqrt a)\) → \(7a=6\sqrt a\) → \(\sqrt a=\dfrac67\).</div><div class="step">\(a=\dfrac{36}{49}\).</div>`,
-  v:{ q:R`같은 방식으로 B가 \(y=2\sqrt x\), C가 \(y=\sqrt x\) 위에 있을 때 \(a\)는?`, ch:[R`\(\dfrac19\)`,R`\(\dfrac49\)`,R`\(\dfrac9{16}\)`,R`\(\dfrac4{25}\)`,R`\(\dfrac14\)`], a:1, hint:R`\(4a=a+2\sqrt a\).`, sol:R`<div class="step">\(\sqrt a=\frac23\) → \(\frac49\).</div>` } },
-];
-ADD_GJ.forEach(p=>{ const u = UNITS.find(x=>x.id===p.u); if (u && !u.problems.some(q=>q.id===p.id)) u.problems.push(p); });
-
-
 
 
 
@@ -2845,9 +2446,92 @@ ADD_GJ.forEach(p=>{ const u = UNITS.find(x=>x.id===p.u); if (u && !u.problems.so
 const KEY = 'gongsu2-final-v1';
 let S = { att:{}, checks:{}, why:{}, log:[] };
 try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch(e) {}
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} }
+function save(){ S.updated = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} if (window.proofCloud) window.proofCloud.push(); }
 
 const $ = (s, el=document) => el.querySelector(s);
+let _toastT;
+function toast(msg){ const el = document.getElementById('toast'); if (!el) return; el.textContent = msg; el.classList.add('show'); clearTimeout(_toastT); _toastT = setTimeout(()=>el.classList.remove('show'), 2400); }
+function askConfirm(msg, onYes, yesLabel){
+  const back = document.createElement('div'); back.className = 'dlg-back';
+  back.innerHTML = '<div class="dlg" role="dialog" aria-modal="true"><p></p><div class="btnrow"><button class="btn line" data-r="0">취소</button><button class="btn" data-r="1"></button></div></div>';
+  back.querySelector('p').textContent = msg;
+  back.querySelector('[data-r="1"]').textContent = yesLabel || '확인';
+  const close = ()=>back.remove();
+  back.onclick = e => { if (e.target === back) close(); };
+  back.querySelector('[data-r="0"]').onclick = close;
+  back.querySelector('[data-r="1"]').onclick = ()=>{ close(); onYes(); };
+  document.body.appendChild(back);
+}
+
+/* ---------- 로그인·동기화 (Firebase, VOCAP과 같은 프로젝트) ---------- */
+window.proofCloud = (()=>{
+  let ref=null, uid=null, timer=null, writing=Promise.resolve(), unsub=null, status='local';
+  const api = { user:null, login:null, logout:null };
+  const TXT = { ok:'기록이 서버와 동기화되고 있어요.', loading:'동기화 연결 중이에요…', err:'동기화가 끊겼어요. 이 기기에는 계속 저장돼요.', local:'' };
+  const snap = ()=>JSON.parse(JSON.stringify(S));
+  const uniq = (arr, f)=>{ const m = new Map(); arr.forEach(x=>{ const k = f(x); if (!m.has(k)) m.set(k, x); }); return [...m.values()]; };
+  // a가 우선(충돌 시), b는 빈 곳을 채움. 풀이 기록·로그는 합집합
+  function mergeState(a, b){
+    const out = Object.assign({}, b, a);
+    const keys = new Set([...Object.keys(a.att||{}), ...Object.keys(b.att||{})]);
+    out.att = {}; keys.forEach(k=>{ const x=(a.att||{})[k], y=(b.att||{})[k]; out.att[k] = !x ? y : !y ? x : (y.n > x.n ? y : x); });
+    out.checks = Object.assign({}, b.checks, a.checks);
+    out.why = Object.assign({}, b.why, a.why);
+    out.srs = Object.assign({}, b.srs, a.srs);
+    out.log = uniq([...(a.log||[]), ...(b.log||[])], x=>x.at+'|'+x.k).sort((p,q)=>p.at-q.at).slice(-500);
+    out.clog = [...new Set([...(a.clog||[]), ...(b.clog||[])])].sort((p,q)=>p-q);
+    out.study = uniq([...(a.study||[]), ...(b.study||[])], x=>x.at+'|'+x.min);
+    out.exps = uniq([...(a.exps||[]), ...(b.exps||[])], x=>x.start);
+    out.reports = uniq([...(a.reports||[]), ...(b.reports||[])], x=>x.at).sort((p,q)=>p.at-q.at).slice(-40);
+    out.cnt = Math.max(a.cnt||0, b.cnt||0);
+    return out;
+  }
+  function apply(d){
+    S = Object.assign({ att:{}, checks:{}, why:{}, log:[], clog:[], study:[], exps:[], srs:{}, reports:[], cnt:0 }, d);
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {}
+    const top = stack[stack.length-1];
+    if (top === renderHome || top === renderMore) top();
+  }
+  function setStatus(k){ status = k; drawBox(); }
+  function push(now){
+    if (!ref) return; clearTimeout(timer);
+    timer = setTimeout(()=>{ const data = snap(); writing = writing.then(()=>ref && ref.set(data)).then(()=>setStatus('ok')).catch(()=>setStatus('err')); }, now ? 0 : 1000);
+  }
+  async function connect(r, id){
+    if (unsub) { unsub(); unsub = null; }
+    ref = r; uid = id; setStatus('loading');
+    const flag = KEY+'-synced-'+id; let synced = false; try { synced = !!localStorage.getItem(flag); } catch(e) {}
+    try {
+      const sn = await r.get();
+      const hasLocal = (S.log && S.log.length) || Object.keys(S.att||{}).length;
+      if (sn.exists()) {
+        const d = sn.data();
+        if (!synced && hasLocal) { const m = mergeState((d.updated||0) >= (S.updated||0) ? d : S, (d.updated||0) >= (S.updated||0) ? S : d); m.updated = Date.now(); apply(m); push(true); }
+        else if ((d.updated||0) > (S.updated||0)) apply(d);
+        else if ((d.updated||0) < (S.updated||0)) push(true);
+      } else if (hasLocal) { push(true); }
+      try { localStorage.setItem(flag, '1'); } catch(e) {}
+      setStatus('ok');
+      unsub = r.onSnapshot(x=>{ if (!x.exists()) return; const d = x.data(); if ((d.updated||0) > (S.updated||0)) apply(d); setStatus('ok'); }, ()=>setStatus('err'));
+    } catch(e) { console.error(e); setStatus('err'); }
+  }
+  function disconnect(){ if (unsub) { unsub(); unsub = null; } clearTimeout(timer); ref = null; uid = null; setStatus('local'); }
+  function drawBox(){
+    const box = document.getElementById('authBox'); if (!box) return;
+    const u = api.user;
+    if (!api.login) { box.innerHTML = '<b style="display:block;margin-bottom:2px">로그인</b><span class="small">로그인 기능을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.</span>'; return; }
+    if (u) {
+      box.innerHTML = '<b style="display:block;margin-bottom:2px"><span class="who"></span> 로그인됨</b><span class="small"></span><div class="btnrow"><button class="btn line" id="outBtn">로그아웃</button></div>';
+      box.querySelector('.who').textContent = (u.displayName||'').split(' ')[0] || '내 계정';
+      box.querySelector('.small').textContent = TXT[status] || TXT.ok;
+      document.getElementById('outBtn').onclick = ()=>askConfirm('로그아웃할까요?\n이 기기의 기록은 그대로 남아요.', ()=>api.logout(), '로그아웃');
+    } else {
+      box.innerHTML = '<b style="display:block;margin-bottom:2px">로그인하고 기록 지키기</b><span class="small">구글 계정으로 로그인하면 기록이 서버에 저장돼서, 기기를 바꾸거나 데이터를 지워도 이어서 풀 수 있어요.</span><div class="btnrow"><button class="btn" id="inBtn">구글로 로그인</button></div>';
+      document.getElementById('inBtn').onclick = ()=>api.login();
+    }
+  }
+  return Object.assign(api, { push, connect, disconnect, drawBox });
+})();
 const app = $('#app');
 const NUM = ['①','②','③','④','⑤'];
 const WHY = ['개념을 몰랐다','공식·성질이 헷갈렸다','문제 해석을 잘못했다','계산 실수','시간이 부족했다'];
@@ -3046,44 +2730,6 @@ function bindCoachTop(){
   const wg = $('#weakGo'); if (wg) wg.onclick = ()=>startSession(null, 'list', weakIds());
 }
 
-/* ===== 손글씨 서술형 + AI 키워드 채점 ===== */
-let SAMPLE = null;
-
-function plain(html){ const d=document.createElement('div'); d.innerHTML=String(html); return d.textContent.replace(/\s+/g,' ').trim(); }
-function initPad(cv){
-  const ctx = cv.getContext('2d'); const st = { erase:false, strokes:[], cur:null };
-  const fit = ()=>{ const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio||1; cv.width = r.width*dpr; cv.height = r.height*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); redraw(); };
-  const ink = ()=>getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()||'#17181C';
-  function seg(s, i){ const a=s.pts[i-1], b=s.pts[i]; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.lineWidth = s.erase ? 22 : 1.2+2.6*(b[2]||0.5); ctx.lineCap='round'; ctx.strokeStyle = s.erase ? '#fff' : ink(); ctx.globalCompositeOperation = s.erase ? 'destination-out' : 'source-over'; ctx.stroke(); }
-  function redraw(){ ctx.clearRect(0,0,cv.width,cv.height); st.strokes.forEach(s=>{ for(let i=1;i<s.pts.length;i++) seg(s,i); }); ctx.globalCompositeOperation='source-over'; }
-  const pos = e=>{ const r=cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top, e.pointerType==='pen' ? (e.pressure||0.5) : 0.5]; };
-  cv.addEventListener('pointerdown', e=>{ if (e.pointerType==='touch' && st.penSeen) return; if (e.pointerType==='pen') st.penSeen = true; cv.setPointerCapture(e.pointerId); st.cur = { erase:st.erase, pts:[pos(e)] }; st.strokes.push(st.cur); e.preventDefault(); });
-  cv.addEventListener('pointermove', e=>{ if (!st.cur) return; st.cur.pts.push(pos(e)); seg(st.cur, st.cur.pts.length-1); e.preventDefault(); });
-  const end = ()=>{ st.cur = null; ctx.globalCompositeOperation='source-over'; };
-  cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
-  new ResizeObserver(fit).observe(cv); fit();
-  return { undo(){ st.strokes.pop(); redraw(); }, clear(){ st.strokes=[]; redraw(); }, toggleErase(){ st.erase=!st.erase; return st.erase; }, empty(){ return !st.strokes.some(s=>!s.erase); },
-    blob(){ return new Promise(res=>{ const c=document.createElement('canvas'); c.width=cv.width; c.height=cv.height; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); const keep=st.strokes; const k=ctx.getTransform(); x.setTransform(k); keep.forEach(s=>{ for(let i=1;i<s.pts.length;i++){ const a=s.pts[i-1], b=s.pts[i]; x.beginPath(); x.moveTo(a[0],a[1]); x.lineTo(b[0],b[1]); x.lineWidth = s.erase?22:1.2+2.6*(b[2]||0.5); x.lineCap='round'; x.strokeStyle = s.erase?'#fff':'#111'; x.stroke(); } }); c.toBlob(res,'image/png'); }); } };
-}
-function selfHTML(){
-  return `<div class="selfbox">
-    <div class="seg" id="selfMode" style="margin-top:0"><button data-m="pen" class="on">펜으로 쓰기</button><button data-m="key">키보드</button></div>
-    <div id="penWrap"><div class="padtools"><button class="btn line" id="pUndo">되돌리기</button><button class="btn line" id="pErase">지우개</button><button class="btn line" id="pClear">전체 지우기</button></div><canvas id="pad" class="pad"></canvas><p class="small" style="margin:8px 4px 0">애플펜슬·S펜으로 쓰면 손바닥이 닿아도 안 그려져요.</p></div>
-    <div id="keyWrap" hidden><textarea id="selfIn" placeholder="풀이를 써 보세요."></textarea></div>
-    <div class="btnrow"><button class="btn" id="reveal">모범 답안 보기</button></div>
-    <div id="selfJudge"></div></div>`;
-}
-function bindSelf(P, finish){
-  const pad = initPad($('#pad')); let mode='pen';
-  $('#pUndo').onclick=()=>pad.undo(); $('#pClear').onclick=()=>pad.clear();
-  $('#pErase').onclick=()=>{ const on=pad.toggleErase(); $('#pErase').classList.toggle('ghost',on); $('#pErase').textContent = on?'펜으로':'지우개'; };
-  document.querySelectorAll('#selfMode button').forEach(b=>b.onclick=()=>{ mode=b.dataset.m; document.querySelectorAll('#selfMode button').forEach(x=>x.classList.toggle('on',x===b)); $('#penWrap').hidden = mode!=='pen'; $('#keyWrap').hidden = mode!=='key'; });
-  let done=false;
-  const judge = (pre)=>{ const j=$('#selfJudge'); j.innerHTML = `<div class="sol"><h4>모범 답안</h4>${P.sol}<h4 style="margin-top:18px">채점 기준</h4><ul class="rubric">${(P.keys||P.rubric||[]).map(r=>`<li><b>${r}</b></li>`).join('')}</ul></div><p class="small" style="margin:14px 4px 8px">굵게 표시된 핵심 키워드가 내 풀이에 다 있으면 맞음, 하나라도 빠졌으면 다시로 표시하세요.</p><div class="btnrow"><button class="btn ${pre==='no'?'line':''}" id="sOk">맞음으로 기록</button><button class="btn ${pre==='no'?'':'line'}" id="sNo">다시로 기록</button></div>`; typeset(j);
-    $('#sOk').onclick=()=>{ if(done) return; done=true; finish(true,'self'); }; $('#sNo').onclick=()=>{ if(done) return; done=true; finish(false,'self'); }; };
-  $('#reveal').onclick = ()=>{ $('#reveal').disabled = true; judge(null); };
-}
-
 /* ========== 기록·통계 ========== */
 function record(pid, variant, ok, sec){
   const k = pid + (variant ? 'v' : '');
@@ -3225,6 +2871,8 @@ function renderMore(){
   const fs = document.documentElement.dataset.fs || 'm'; let th='light'; try{ th = localStorage.getItem(KEY+'-th') || 'light'; }catch(e){}
   app.innerHTML = `<section class="phead"><h2>더보기</h2></section>
   <div class="menu">
+    <h4>계정</h4>
+    <div class="panel" id="authBox" style="margin-top:6px"></div>
     <h4>공부</h4>
     <button class="mi" id="mWrong">${ic('<path d="M6 3h12v18l-6-4-6 4z"/>')}오답노트</button>
     <button class="mi" id="mSheet">${ic('<path d="M6 3h12v18H6z"/><path d="M9 8h6M9 12h6M9 16h3"/>')}공식 모아보기</button>
@@ -3242,6 +2890,7 @@ function renderMore(){
     <h4>설정</h4>
     <button class="mi" id="mReset">${ic('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>')}풀이 기록 지우기</button>
   </div>`;
+  window.proofCloud.drawBox();
   $('#mWrong').onclick = ()=>go(renderWrong);
   $('#mSheet').onclick = ()=>go(renderSheet);
   $('#mMix').onclick = ()=>startSession(null,'mix');
@@ -3249,7 +2898,7 @@ function renderMore(){
   $('#mQuest').onclick = ()=>go(renderQuests);
   $('#mTime').onclick = ()=>go(()=>renderStudy('timer'));
   $('#mExp').onclick = ()=>go(renderExp);
-  $('#mReset').onclick = ()=>{ if (confirm('풀이 기록을 모두 지울까요? 되돌릴 수 없어요.')) { S = { att:{}, checks:{}, why:{}, log:[], clog:[], study:[], exps:[], srs:{}, reports:[], cnt:0 }; save(); alert('기록을 지웠어요.'); } };
+  $('#mReset').onclick = ()=>askConfirm('풀이 기록을 모두 지울까요?\n되돌릴 수 없어요.', ()=>{ S = { att:{}, checks:{}, why:{}, log:[], clog:[], study:[], exps:[], srs:{}, reports:[], cnt:0 }; save(); toast('기록을 지웠어요.'); }, '지우기');
   app.querySelectorAll('#thSeg button').forEach(b=>b.onclick=()=>{ const v=b.dataset.th; if (v==='auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme=v; try{ localStorage.setItem(KEY+'-th', v); }catch(e){} renderMore(); });
   app.querySelectorAll('#fsSeg button').forEach(b=>b.onclick=()=>{ document.documentElement.dataset.fs = b.dataset.fs; try{ localStorage.setItem(KEY+'-fs', b.dataset.fs); }catch(e){} renderMore(); });
 }
@@ -3340,7 +2989,7 @@ function startSession(uid, mode, one){
   else if (mode==='mix') list = shuffle(pool.slice()).slice(0,10);
   else if (mode==='due') list = dueList(Date.now()).filter(id=>pool.includes(id));
   else if (mode==='list') list = (one||[]).slice();
-  if (!list.length) { alert(mode==='wrong'||mode==='due' ? '지금 다시 풀 문제가 없어요.' : '풀 문제가 없어요. 처음부터 풀기를 눌러 보세요.'); return; }
+  if (!list.length) { toast(mode==='wrong'||mode==='due' ? '지금 다시 풀 문제가 없어요.' : '풀 문제가 없어요. 처음부터 풀기를 눌러 보세요.'); return; }
   SES = { uid, mode, queue: list.map(id=>({ id, variant:false, retry:false })), i:0, ok:0, done:0, requeued:{}, conceptAlerted:{} };
   go(renderSolve);
 }
@@ -3358,7 +3007,7 @@ function renderSolve(){
     <div class="progress"><i style="width:${SES.i/SES.queue.length*100}%"></i></div>
     <div class="q-meta">
       <span class="chip">${u.name}</span><span class="chip g">${p.tag}</span>
-      ${it.variant?'<span class="chip r">변형 문제</span>':''}${P.self?'<span class="chip s">서술형 · 자기 채점</span>':''}${it.retry?'<span class="chip r">다시 풀기</span>':''}
+      ${it.variant?'<span class="chip r">변형 문제</span>':''}${it.retry?'<span class="chip r">다시 풀기</span>':''}
     </div>
     <div class="src">출처: ${src}</div>
     <div class="timer" id="tmr">
@@ -3368,7 +3017,7 @@ function renderSolve(){
     </div>
     <div class="qtext">${P.q}</div>
     ${P.qfig||''}
-    <div id="ans">${P.self ? selfHTML() : P.input!==undefined
+    <div id="ans">${P.input!==undefined
       ? `<div class="inputrow"><input id="inp" inputmode="decimal" placeholder="답 입력" aria-label="답 입력"><button class="btn" id="sub">제출</button></div>`
       : `<div class="choices ${P.ch.some(c=>String(c).includes('<svg'))?'figs':''}">${P.ch.map((x,j)=>`<button class="choice" data-j="${j}"><span class="n">${NUM[j]}</span><span>${x}</span></button>`).join('')}</div>`}
     </div>
@@ -3392,9 +3041,7 @@ function renderSolve(){
     showAfter(u, p, P, it, ok, sec, chosen);
     if (ok) sparkle();
   };
-  if (P.self) {
-    bindSelf(P, finish);
-  } else if (P.input!==undefined) {
+  if (P.input!==undefined) {
     const sub = ()=>{ const v = $('#inp').value.trim().replace(/\s/g,'').replace(/[−–]/g,'-'); if (!v) return; $('#inp').disabled = true; $('#sub').disabled = true; finish(ansEq(v, String(P.input)), v); };
     $('#sub').onclick = sub; $('#inp').onkeydown = e=>{ if (e.key==='Enter') sub(); };
   } else {
@@ -3408,15 +3055,15 @@ function renderSolve(){
 }
 function showAfter(u, p, P, it, ok, sec, chosen){
   const over = sec > P.t;
-  const ansText = P.self ? '모범 답안 참고' : P.input!==undefined ? P.input : NUM[P.a];
+  const ansText = P.input!==undefined ? P.input : NUM[P.a];
   const af = $('#after');
   let html = ok
     ? `<div class="result ok">정답!<span class="xpchip">+${xpOf(true, sec, p.id+(it.variant?'v':''))} XP</span>${(()=>{ const m = String(P.sol).match(/<div class="key"><b>쓴 개념<\/b>(.*?)<\/div>/); return m ? `<span class="why1">${m[1]}</span>` : `<span class="why1">${p.tag}</span>`; })()}<small>${fmt(sec)} · ${over ? `목표 시간 ${fmt(P.t)}을 넘겼어요. 해설에서 더 짧은 길을 확인하세요.` : '목표 시간 안에 풀어서 보너스 +5 XP'}</small></div>`
-    : `<div class="result no">오답 (${fmt(sec)})<small>정답은 ${ansText}${P.input!==undefined&&!P.self?` (입력한 답: ${esc(chosen)})`:''}</small></div>`;
+    : `<div class="result no">오답 (${fmt(sec)})<small>정답은 ${ansText}${P.input!==undefined?` (입력한 답: ${esc(chosen)})`:''}</small></div>`;
   if (!ok) {
     html += `<div class="why"><p>어디서 틀렸나요? 고르면 리포트의 훈수에 반영돼요.</p><div class="opts">${WHY.map(w=>`<button data-w="${w}">${w}</button>`).join('')}</div></div>`;
   }
-  if (!P.self) html += `<div class="sol"><h4>풀이</h4>${P.sol}</div>`;
+  html += `<div class="sol"><h4>풀이</h4>${P.sol}</div>`;
   if (S.newReport) { S.newReport = false; save(); html += `<div class="alert"><b>새 리포트가 나왔어요</b>방금 30문제를 채웠어요. 코치 탭에서 약점 리포트를 확인하세요.</div>`; }
   html += `<div id="cAlert"></div><div class="btnrow" id="nav"></div>`;
   af.innerHTML = html;
@@ -3527,7 +3174,7 @@ function renderReport(){
     <div class="panel">${whyTot ? WHY.map(w=>{ const n=whyAll[w]||0; return `<div class="rrow"><div class="h"><span>${w}</span><span>${n}번</span></div><div class="bars"><i style="width:${n/whyTot*100}%;background:var(--bad)"></i></div></div>`; }).join('') : '<p class="small" style="margin:0">틀린 문제에서 이유를 고르면 여기에 모여요.</p>'}</div>
     <div class="btnrow"><button class="btn line" id="reset">기록 전체 지우기</button></div>`;
   bindCoachTop();
-  $('#reset').onclick = ()=>{ if (confirm('풀이 기록을 모두 지울까요? 되돌릴 수 없어요.')) { S = { att:{}, checks:{}, why:{}, log:[], clog:[], study:[], exps:[], srs:{}, reports:[], cnt:0 }; save(); renderReport(); } };
+  $('#reset').onclick = ()=>askConfirm('풀이 기록을 모두 지울까요?\n되돌릴 수 없어요.', ()=>{ S = { att:{}, checks:{}, why:{}, log:[], clog:[], study:[], exps:[], srs:{}, reports:[], cnt:0 }; save(); renderReport(); toast('기록을 지웠어요.'); }, '지우기');
 }
 
 /* ========== 공식 ========== */
@@ -3556,6 +3203,54 @@ function renderOnboard(i=0){
 let seenOnb = false; try { seenOnb = !!localStorage.getItem(KEY+'-onb'); } catch(e) {}
 if (seenOnb) { stack = [renderHome]; renderHome(); } else { stack = [()=>renderOnboard(0)]; renderOnboard(0); }
 setTimeout(()=>{ $('#splash').classList.add('hide'); anim('enter-up'); setTimeout(()=>$('#splash')?.remove(), 500); }, 1150);
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBX63hV8FnrkrtAuh9644yw4BSV2GTUPv4",
+  authDomain: "vocap-e3e9e.firebaseapp.com",
+  projectId: "vocap-e3e9e",
+  storageBucket: "vocap-e3e9e.firebasestorage.app",
+  messagingSenderId: "322645613396",
+  appId: "1:322645613396:web:9b73e58558018c972fc6c1"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+auth.languageCode = "ko";
+const db = getFirestore(app);
+const cloud = window.proofCloud;
+
+// VOCAP은 users/{uid} 문서를 통째로 쓰기 때문에, Proof는 겹치지 않게 하위 문서에 저장해요.
+const wrap = ref => ({
+  get: () => getDoc(ref),
+  set: d => setDoc(ref, d),
+  onSnapshot: (cb, err) => onSnapshot(ref, cb, err)
+});
+
+cloud.login = async () => {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  try { await signInWithPopup(auth, provider); }
+  catch (e) {
+    if (e.code === "auth/popup-blocked" || e.code === "auth/operation-not-supported-in-this-environment") {
+      await signInWithRedirect(auth, provider);
+    } else if (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request") {
+      toast("로그인이 안 됐어요. (" + e.code + ")");
+    }
+  }
+};
+cloud.logout = () => signOut(auth);
+
+onAuthStateChanged(auth, user => {
+  cloud.user = user;
+  if (user) cloud.connect(wrap(doc(db, "users", user.uid, "apps", "proof")), user.uid);
+  else cloud.disconnect();
+  cloud.drawBox();
+});
+cloud.drawBox();
 </script>
 <script>
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{})); }
